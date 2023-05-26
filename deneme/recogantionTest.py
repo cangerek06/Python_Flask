@@ -3,11 +3,10 @@ import os
 import face_recognition
 
 KNOWN_FACES_DIR ="known_faces"
-UNKNOWN_FACES_DIR="unknown_faces"
+UNKNOWN_FACES_DIR="data"
 TOLERANCE = 0.6
 FRAME_THICKNESS = 3
 FONT_THICKNESS = 2
-MODEL = "cnn"
 
 print("Bilinen Yüzler yükleniyor...")
 
@@ -46,6 +45,7 @@ for filename in os.listdir(UNKNOWN_FACES_DIR):
         if True in results:
             match = known_names[results.index(True)]
             print(f"Match Found : {match}")
+            """
             top_left = (face_location[3],face_location[0])
             bottom_right = (face_location[1],face_location[2])
             color =[0,255,0]
@@ -58,6 +58,6 @@ for filename in os.listdir(UNKNOWN_FACES_DIR):
             cv2.putText(image,match, (face_location[3]+10,face_location[2]+15),cv2.FONT_HERSHEY_COMPLEX,0.5,(200,200,200),FONT_THICKNESS)
             cv2.imshow(match,image)
             cv2.waitKey(10000)
-
+            """
 
 #cv2.destroyAllWindows(filename)
