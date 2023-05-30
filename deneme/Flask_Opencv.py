@@ -111,7 +111,7 @@ def imgExtracter(Id):
             count = count + 1
     else:
         print("Veritabanında girilen Id de bir video yok")
-    print("asdasd")
+    
 
 def KisiTanimla(Id):
     for name in os.listdir(KNOWN_FACES_DIR):
@@ -167,7 +167,7 @@ def KisiTanimla(Id):
 
 def KafaSay():
     lst = os.listdir("data")
-    print("cassda")
+    
     numberFiles = len(lst)
     for i in range(numberFiles):
         image_path ='data/frame'+str(i)+'.jpg'
@@ -176,14 +176,10 @@ def KafaSay():
 
         face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
-        #print(f"Height of İmage : {img.shape[0]}\nWidth of Image:{img.shape[1]}\nArea of Image:{(img.shape[0] * img.shape[1])}")
 
         for (x, y, w, h) in faces:
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 4)
-            """print("***************")
-            print(f"Height of İmage : {h}\nWidth of Image:{w}\nArea of Image:{(img.shape[0] * img.shape[1])}")"""
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        area = w * h      
         writedPath = "/home/can/Desktop/Calismalar/CanPython/Flask/deneme/static/committed"+str(i)+".png"
         cv2.imwrite(writedPath,img_rgb)
         bilgiler.append((i,len(faces)))
@@ -211,13 +207,15 @@ def home(Id):
     
     try:
         imgExtracter(Id)
-        print("Video'dan Fotolar Çekildi.")
-        KafaSay()
-        KisiTanimla(Id)
         
     except Exception:
         pass
-    
+    print("Video'dan Fotolar Çekildi.")
+    try:
+        KafaSay()
+        KisiTanimla(Id)
+    except Exception:
+        pass
     print("Fotolara yüz taramasi yapildi.")
     
 
