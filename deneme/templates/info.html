@@ -1,0 +1,29 @@
+<html>
+    <head>
+    <title>Faces Info</title>
+</head>
+<body>
+    
+    <h1>INFO</h1>
+    {%if BilgiDurumu ==False %}
+        <p1>Video İşleme Sokulmamiş Bilgi Listesi Boş.</p1>
+    
+
+    {% else %}
+
+    {% for entry in entries %}
+        <p>Saniye :{{entry[0]}}</p>
+        <p>KafaSayisi :{{entry[1]}}</p>
+        <p>************************</p>
+    {% endfor %}
+
+    {% endif %}
+
+    
+    
+</style>
+
+
+
+
+</body></html>
