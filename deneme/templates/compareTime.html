@@ -1,0 +1,41 @@
+<html>
+    <head>
+    <title>Faces Info</title>
+</head>
+<body>
+    
+    <h1>{{person}}</h1>
+    {%if BilgiDurumu ==False %}
+        <p1>Video İşleme Sokulmamiş Bilgi Listesi Boş.</p1>
+    
+
+    {% else %}
+    <h3>Sadece {{person}} adli kişinin bulunduğu Sahneler </h3>
+    
+        <table>
+            <tr>
+                <th>Frame</th>
+                <th>>Kişi</th>
+            </tr>
+            {% for frame in onlyPersonFrameList %}
+            <tr>
+                
+                <td>{{frame}}</td>
+                <td>{{person}}</td>
+                
+            </tr>
+            {% endfor %}
+        </table>
+        
+    
+
+    {% endif %}
+
+    
+    
+</style>
+
+
+
+
+</body></html>
