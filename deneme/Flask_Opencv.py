@@ -4,6 +4,7 @@ import cv2
 import face_recognition
 import os
 import psycopg2
+import db_operations
 
 
 KNOWN_FACES_DIR ="known_faces"
@@ -14,8 +15,10 @@ FRAME_THICKNESS = 3
 FONT_THICKNESS = 2
 
 
+
 app = Flask(__name__)
 
+isRead =False
 
 
 known_faces = []
@@ -58,41 +61,7 @@ def videoCek(VideoId):
     return VIDEO_URL
 
 
-def VeriKaydet(VideoId):
-    conn =psycopg2.connect(host ="localhost",dbname="flask_db",user="postgres",password="1",port=5432)
-    cur=conn.cursor()
 
-    cur.execute("""CREATE TABLE IF NOT EXISTS SaniyeBazliKayit(
-    id PRIMARY KEY,
-    saniye VARCHAR(255),
-    kisiler VARCHAR(255)
-    );""")
-
-    cur.execute("""CREATE TABLE IF NOT EXISTS kisibazlikayit(
-    id PRIMARY KEY,
-    kisi VARCHAR(255),
-    BulunduguSaniyeler VARCHAR(255),
-    TotalBulunmaSuresi VARCHAR(255)
-    );""") 
-
-    InsertString_kisi = f"""INSERT INTO kisibazlikayit(id,kisi, BulunduguSaniyeler, TotalBulunmaSuresi) VALUES
-    ({VideoId},'Celal Şengör', '{str(celalKayit)}', '{str(len(celalKayit))}'),
-    ({VideoId}'Mehmet Ali Birand', '{str(aliKayit)}', '{str(len(aliKayit))}'),
-    ({VideoId}'Besim Tibuk', '{str(besimKayit)}', '{str(len(besimKayit))}')
-
-"""
-
-    
-
-    cur.execute(InsertString_kisi)
-    
-    
-
-    conn.commit()
-
-    cur.close()
-
-    conn.close()
 
 
 def imgExtracter(Id):
@@ -132,8 +101,9 @@ def KisiTanimla(Id):
     print("bilinmeyen yüzlere bakiliyor...")
     print("*******************************")
     
-    for i in range(70,len(os.listdir("data"))):
+    for i in range(80,len(os.listdir("data"))):
         filename = f"frame{i}.jpg"
+        face_list =[]
         print(filename)
         print("Dosya var mi :"+str(os.path.exists(f"data/{filename}")))
         image =cv2.imread(f"data/{filename}")
@@ -149,11 +119,15 @@ def KisiTanimla(Id):
                 print(f"Match Found : {match}")
                 if(match =="celal"):
                     celalKayit.append((i))
+                    face_list.append("CelalSengor")
                 if(match=="ali"):
                     aliKayit.append((i))
+                    face_list.append("MehmetAliBirand")
                 if(match=="besim"):
                     besimKayit.append((i))
-                
+                    face_list.append("BesimTibuk")
+        db_operations.InsertDataToAnalyzePerFrame(host="localhost",dbname="flask_db",user="postgres",password="1",port=5432,RecievedData=face_list,videoId=Id,frameNumber = i)
+
                     
                 
 
@@ -162,7 +136,10 @@ def KisiTanimla(Id):
     print("Ali Bilgileri :"+str((aliKayit))+" sn")
     print("Besim Bilgileri :"+str((besimKayit))+" sn")
     print("Veritabanına Kaydediliyor.")
-    VeriKaydet(Id)
+    db_operations.InsertDataToAnalyzeForPerson(host='localhost',dbname="flask_db",user="postgres",password="1",port=5432,person="CelalSengor",RecievedData=celalKayit,videoId=Id)
+    db_operations.InsertDataToAnalyzeForPerson(host='localhost',dbname="flask_db",user="postgres",password="1",port=5432,person="MehmetAliBirand",RecievedData=aliKayit,videoId=Id)
+    db_operations.InsertDataToAnalyzeForPerson(host='localhost',dbname="flask_db",user="postgres",password="1",port=5432,person="BesimTibuk",RecievedData=besimKayit,videoId=Id)
+    print("kaydedildi.")
 
 
 def KafaSay():
@@ -188,6 +165,15 @@ def KafaSay():
     for i in bilgiler:
         print("Saniye :"+str(i[0]))
         print("Kafa Sayısı :"+str(i[1]))
+
+
+@app.route('/compare/<person>')
+def CompareTime(person):
+    if(bilgiler ==[]):
+        return render_template("compareTime.html",person=person,BilgiDurumu=False)
+    else:
+        onlyPersonFrameList = db_operations.faceComparisonbyFrames("localhost","flask_db","postgres","1",5432,person)
+        return render_template("compareTime.html",person=person,BilgiDurumu=True,onlyPersonFrameList=onlyPersonFrameList)
 
 
 @app.route('/info')
@@ -221,17 +207,18 @@ def home(Id):
 
     return render_template('index.html')
 
+@app.route('/')
+def main():
+    return 'Flask Opencv Face Recognation App'
 
-
-"""
-@app.route('/Control/<String : fileName>')
-def control(fileName):
-    filePath = "data/"
-    img = cv2.imread("data/")
-
-    """
 
 if __name__ == '__main__':
     #KisiTanimla()
+    
+    
+    try:
+        db_operations.DbInitiliazer("localhost","flask_db","postgres","1",5432)
+    except Exception:
+        print("hata")
     
     app.run()
