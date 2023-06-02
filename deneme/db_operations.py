@@ -1,5 +1,6 @@
 import psycopg2
 import json
+import numpy as np
 import ast
 
 
@@ -17,6 +18,7 @@ def DbInitiliazer(host,dbname,user,password,port):
     id INTEGER,
     frame INTEGER PRIMARY KEY ,
     people VARCHAR(255),
+    ratio VARCHAR(255),
     identifier VARCHAR(255) UNIQUE
     );"""
 
@@ -92,12 +94,21 @@ def InsertDataToVideoTable(host,dbname,user,password,port,RecievedData):
     conn.close()
 
 
-def InsertDataToAnalyzePerFrame(host,dbname,user,password,port,RecievedData,videoId,frameNumber):
+def InsertDataToAnalyzePerFrame(host,dbname,user,password,port,RecievedData1,RecievedData2,videoId,frameNumber):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
+    print("**********")
+    print("func : InsertDataToAnalyzePerFrame Çalışıyor.")
+    print("type RecievedData1: "+str(RecievedData1))
+    print("length RecievedData1"+str(len(RecievedData1)))
 
-    cursor.execute("INSERT INTO analyzeperframe(id,frame,people,identifier)VALUES(%s,%s,%s,%s) ON CONFLICT (identifier) DO NOTHING",(videoId, frameNumber,str(RecievedData),str(str(videoId)+str(frameNumber))))
+    print("type RecievedData2: "+str(RecievedData2))
+    print("length RecievedData2: "+str(len(RecievedData2)))
 
+    if(len(RecievedData1) > 0):
+
+        cursor.execute("INSERT INTO analyzeperframe(id,frame,people,ratio,identifier)VALUES(%s,%s,%s,%s,%s) ON CONFLICT (identifier) DO NOTHING",(videoId, frameNumber,str(RecievedData1),str(RecievedData2),str(str(videoId)+str(frameNumber))))
+    
     conn.commit()
     cursor.close()
     conn.close()
@@ -105,13 +116,27 @@ def InsertDataToAnalyzePerFrame(host,dbname,user,password,port,RecievedData,vide
 def InsertDataToAnalyzeForPerson(host,dbname,user,password,port,RecievedData,person,videoId):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
-
+    
     cursor.execute("INSERT INTO analyzeforperson(id,person,totaltime)VALUES(%s,%s,%s)",(videoId, person, len(RecievedData)))
     print("kayit edildi")
 
     conn.commit()
     cursor.close()
     conn.close()
+
+def GiveFaceRatio(host,dbname,user,password,port,RecievedData,videoId):
+    conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
+    cursor = conn.cursor()
+    ratioList = []
+    for i in RecievedData:
+        DataQuery = f"SELECT * FROM analyzeperframe WHERE frame ={i} AND id ={videoId}"
+        cursor.execute(DataQuery)
+        data = cursor.fetchall()
+        print("**********^^^^^^************")
+        print(data[0][3])
+        print("**********^^^^^^************")
+        ratioList.append(str(data[0][3]))
+    return ratioList
 
 def faceComparisonbyFrames(host,dbname,user,password,port,person):
     conn =psycopg2.connect(host=host,dbname=dbname,user=user,password=password,port=port)
@@ -120,7 +145,6 @@ def faceComparisonbyFrames(host,dbname,user,password,port,person):
     cursor.execute(DataQuery)
     Data = (cursor.fetchall())
     print("Data : "+str(Data))
-    min=Data[0][1]
     print("*************")
     print("Data type : "+str(type(Data)))
     print("*************")
@@ -140,10 +164,10 @@ def faceComparisonbyFrames(host,dbname,user,password,port,person):
         if(person in liste):
             print("person Frame de bulunuyor.")
             print("*************")
-            personFrameList.append(i+min)
+            personFrameList.append(Data[i][1])
             deletePersonFromListToCompare = liste.remove(str(person))
             if(len(liste)==0):
-                onlyPersonFrameList.append(i+min)
+                onlyPersonFrameList.append(Data[i][1])
         else:
             pass
         
@@ -158,7 +182,8 @@ if __name__=='__main__':
     DbInitiliazer("localhost","flask_db","postgres","1",5432)
     #InsertDataToAnalyzeForPerson('localhost',"flask_db","postgres","1",5432,[1,2],"celal",1)
     #InsertDataToAnalyzePerFrame("localhost","flask_db","postgres","1",5432,[("mehmet"),("celal"),("besim")],1,23)
-    faceComparisonbyFrames("localhost","flask_db","postgres","1",5432,"Celal Şengör")
+    #faceComparisonbyFrames("localhost","flask_db","postgres","1",5432,"CelalSengor")
+    GiveFaceRatio("localhost","flask_db","postgres","1",5432,[86,87,88,89,90],1)
 
     print("***************")
 
