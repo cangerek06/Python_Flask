@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import matplotlib.pyplot as plt
 import cv2
 import face_recognition
@@ -84,12 +84,6 @@ def imgExtracter(Id):
     
 
 def KisiTanimla(Id):
-
-    """
-    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-    faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))"""
 
     for name in os.listdir(KNOWN_FACES_DIR):
         for filename in os.listdir(f"{KNOWN_FACES_DIR}/{name}"):
@@ -182,7 +176,7 @@ def KisiTanimla(Id):
     print("kaydedildi.")
 
 
-def KafaSay():
+def KafaSay(videoId):
     lst = os.listdir("data")
     
     numberFiles = len(lst)
@@ -201,11 +195,12 @@ def KafaSay():
         writedPath = "/home/can/Desktop/Calismalar/CanPython/Flask/deneme/static/committed"+str(i)+".png"
         cv2.imwrite(writedPath,img_rgb)
         bilgiler.append((i,len(faces)))
+    db_operations.InsertDataToFaceNumberTable(host="localhost",dbname="flask_db",user="postgres",password="1",port=5432,RecievedData=bilgiler,videoId=videoId)
     print("*************************")
     print("!!! BİLGİLER !!!")
-    for i in bilgiler:
-        print("Saniye :"+str(i[0]))
-        print("Kafa Sayısı :"+str(i[1]))
+    for k in bilgiler:
+        print("Saniye :"+str(k[0]))
+        print("Kafa Sayısı :"+str(k[1]))
 
 
 @app.route('/compare/<int:id>/<person>')
@@ -214,6 +209,7 @@ def CompareTime(person,id):
     cursor =conn.cursor()
     cursor.execute(f"SELECT * FROM analyzeperframe WHERE id={id}")
     data = cursor.fetchall()
+    firstFrame=data[0][1]  
     print("Data :"+str(data))
     if(data ==[]):
         return render_template("compareTime.html",person=person,BilgiDurumu=False)
@@ -221,15 +217,41 @@ def CompareTime(person,id):
 
         onlyPersonFrameList = db_operations.faceComparisonbyFrames("localhost","flask_db","postgres","1",5432,person)
         ratio_list = db_operations.GiveFaceRatio("localhost","flask_db","postgres","1",5432,onlyPersonFrameList,id)
-        return render_template("compareTime.html",person=person,BilgiDurumu=True,onlyPersonFrameList=onlyPersonFrameList,ratio_list=ratio_list)
+        return render_template("compareTime.html",person=person,BilgiDurumu=True,onlyPersonFrameList=onlyPersonFrameList,ratio_list=ratio_list,VideoId=id,firstFrame=firstFrame)
 
 
-@app.route('/info')
-def Goruntule():
-    if(bilgiler ==[]):
-        return render_template("info.html",entries=bilgiler,BilgiDurumu = False)
+
+@app.route('/show/videoId=<int:id>/frame=<int:frame>',methods=['GET','POST'])
+def showFrame(id,frame):
+    if(request.method=='POST'):
+        imgsrc="committed"+str(frame)+".png"
+        print(imgsrc)
+        return render_template("showFrame.html",imgsrc=imgsrc,frame=frame,id=id)
+
+@app.route('/delete/videoId=<int:id>/frame=<int:frame>',methods=['GET','POST'])
+def deleteFrame(id,frame):
+    if(request.method=="POST"):
+        db_operations.DeleteFrameWithIdentifier("localhost","flask_db","postgres","1",5432,id,frame)
+        db_operations.DeleteDataFromFaceNumberTable("localhost","flask_db","postgres","1",5432,id,frame)
+        return render_template('index.html')
+
+
+@app.route('/info/videoId=<int:Id>')
+def Goruntule(Id):
+    data =db_operations.SelectAllFaceTableData("localhost","flask_db","postgres","1",5432,Id)
+    print(data[0])
+    transferredData=[]
+    try:
+        for bilgi in data:
+            transferredData.append((bilgi[1],bilgi[2]))
+            print("Aktarılıyor.")
+    except Exception:
+        print(Exception)
+
+    if(transferredData ==[]):
+        return render_template("info.html",entries=transferredData,BilgiDurumu = False,videoId=Id)
     else:
-        return render_template("info.html",entries=bilgiler, BilgiDurumu =True)
+        return render_template("info.html",entries=transferredData, BilgiDurumu =True,videoId=Id)
 
 
 @app.route('/info/detay')
@@ -246,7 +268,7 @@ def home(Id):
         pass
     print("Video'dan Fotolar Çekildi.")
     try:
-        KafaSay()
+        KafaSay(Id)
         KisiTanimla(Id)
     except Exception:
         pass

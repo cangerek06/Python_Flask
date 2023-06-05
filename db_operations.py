@@ -14,9 +14,16 @@ def DbInitiliazer(host,dbname,user,password,port):
 
     );"""
     
+    QueryString_AnalyzeForFaceNumber = """CREATE TABLE IF NOT EXISTS analyzeforfacenumber(
+        id INTEGER,
+        frame INTEGER,
+        facenumber INTEGER,
+        identifier VARCHAR(255) UNIQUE    
+    );"""
+
     QueryString_AnalyzePerFrame = """CREATE TABLE IF NOT EXISTS analyzeperframe(
     id INTEGER,
-    frame INTEGER PRIMARY KEY ,
+    frame INTEGER,
     people VARCHAR(255),
     ratio VARCHAR(255),
     identifier VARCHAR(255) UNIQUE
@@ -34,7 +41,8 @@ def DbInitiliazer(host,dbname,user,password,port):
     cursor.execute(QueryString_AnalyzePerFrame)
     conn.commit()
     cursor.execute(QueryString_AnalyzeForPerson)
-    
+    conn.commit()
+    cursor.execute(QueryString_AnalyzeForFaceNumber)
     conn.commit()
     
     cursor.close()
@@ -62,6 +70,19 @@ def SelectVideoTableDatasWithId(host,dbname,user,password,port,videoId):
 
     return VİDEO_URL
 
+def SelectAllFaceTableData(host,dbname,user,password,port,videoId):
+    conn = psycopg2.connect(host=host,dbname=dbname,user=user,password=password,port=port)
+    cursor = conn.cursor()
+    
+    DataQuery =f"select * from analyzeforfacenumber WHERE id={int(videoId)} ORDER BY frame ASC ;"
+    cursor.execute(DataQuery)
+
+    data = cursor.fetchall()
+    print("$$$$$$$$$$$$$$$$$$$")
+    print("FaceTable Data : "+str(data))
+    print("$$$$$$$$$$$$$$$$$$$")
+    return data
+
 def SelectPerSecondAnalysisWithFrame(host,dbname,user,password,port,frame):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
@@ -81,6 +102,30 @@ def SelectPerSecondAnalysisWithFrame(host,dbname,user,password,port,frame):
     cursor.close()
     conn.close()
     return Data
+
+def InsertDataToFaceNumberTable(host,dbname,user,password,port,RecievedData,videoId):
+    conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
+    cursor = conn.cursor()
+    for data in RecievedData:
+        InsertQuery =f"""INSERT INTO analyzeforfacenumber (id, frame,facenumber, identifier) VALUES ({videoId},{int(data[0])},{int(data[1])},{str(str(videoId)+str(data[0]))}) ON CONFLICT (identifier) DO NOTHING ;"""
+        cursor.execute(InsertQuery)
+        conn.commit()
+    cursor.close()
+    conn.close()
+
+def DeleteDataFromFaceNumberTable(host,dbname,user,password,port,videoId,frame):         
+    conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
+    cursor = conn.cursor()
+
+    DeleteQuery=f"DELETE FROM analyzeforfacenumber WHERE id={int(videoId)} and frame={int(frame)}"
+    cursor.execute(DeleteQuery)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+
+
 
 def InsertDataToVideoTable(host,dbname,user,password,port,RecievedData):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
@@ -124,6 +169,20 @@ def InsertDataToAnalyzeForPerson(host,dbname,user,password,port,RecievedData,per
     cursor.close()
     conn.close()
 
+def DeleteFrameWithIdentifier(host,dbname,user,password,port,id,frame):
+        conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
+        cursor =conn.cursor()
+        identifier = str(str(id)+str(frame))
+        DeleteQuery =f"DELETE FROM analyzeperframe WHERE frame ={frame} AND id ={id}"  
+        cursor.execute(DeleteQuery)
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+    
+
+
 def GiveFaceRatio(host,dbname,user,password,port,RecievedData,videoId):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
@@ -136,6 +195,8 @@ def GiveFaceRatio(host,dbname,user,password,port,RecievedData,videoId):
         print(data[0][3])
         print("**********^^^^^^************")
         ratioList.append(str(data[0][3]))
+    cursor.close()
+    conn.close()
     return ratioList
 
 def faceComparisonbyFrames(host,dbname,user,password,port,person):

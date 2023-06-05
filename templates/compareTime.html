@@ -31,8 +31,13 @@
                         <td>{{onlyPersonFrameList[i]}}</td>
                         <td>{{person}}</td>
                         <td>{{ratio_list[i]|string}}</td>
-                        <td> <button type="submit" class="btn btn-danger mb-3">Sil</button>
-                        <button type="submit" class="btn btn-primary mb-3">Görüntüle</button>
+                        <td> 
+                         <div >  
+                          <form class="form-vertical" action="/result" method="POST">
+                            <input type="submit" class="btn btn-danger mb-3" name="submit" value="Sil" formaction="/delete/videoId={{VideoId}}/frame={{onlyPersonFrameList[i]}}"/>
+                            <input type="submit" class="btn btn-primary mb-3" name="submit" value="Görüntüle" formaction="/show/videoId={{VideoId}}/frame={{onlyPersonFrameList[i]}}"/>
+                          </form>
+                         </div>
                         </td>
                           
                     </tr>
