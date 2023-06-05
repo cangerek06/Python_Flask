@@ -82,7 +82,7 @@ def SelectAllFaceTableData(host,dbname,user,password,port,videoId):
     print("FaceTable Data : "+str(data))
     print("$$$$$$$$$$$$$$$$$$$")
     return data
-
+#cas
 def SelectPerSecondAnalysisWithFrame(host,dbname,user,password,port,frame):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
