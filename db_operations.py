@@ -240,11 +240,11 @@ def faceComparisonbyFrames(host,dbname,user,password,port,person):
 
 
 if __name__=='__main__':
-    DbInitiliazer("localhost","flask_db","postgres","1",5432)
+    DbInitiliazer("localhost","cangerek","cangerek","3095",5432)
     #InsertDataToAnalyzeForPerson('localhost',"flask_db","postgres","1",5432,[1,2],"celal",1)
     #InsertDataToAnalyzePerFrame("localhost","flask_db","postgres","1",5432,[("mehmet"),("celal"),("besim")],1,23)
     #faceComparisonbyFrames("localhost","flask_db","postgres","1",5432,"CelalSengor")
-    GiveFaceRatio("localhost","flask_db","postgres","1",5432,[86,87,88,89,90],1)
+    GiveFaceRatio("localhost","cangerek","cangerek","3095",5432,[86,87,88,89,90],1)
 
     print("***************")
 

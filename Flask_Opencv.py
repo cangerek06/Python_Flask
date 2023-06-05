@@ -32,7 +32,7 @@ besimKayit=[]
 
 
 def VideoEkle(videoLink):
-    video_conn=psycopg2.connect(host ="localhost",dbname="flask_db",user="postgres",password="1",port=5432)
+    video_conn=psycopg2.connect("localhost","cangerek","cangerek","3095",port=5432)
     video_cur = video_conn.cursor()
     video_cur.execute("""CREATE TABLE IF NOT EXISTS videotable(
     id SERIAL PRIMARY KEY,
@@ -46,7 +46,7 @@ def VideoEkle(videoLink):
     video_conn.close()
 
 def videoCek(VideoId):
-    video_conn=psycopg2.connect(host ="localhost",dbname="flask_db",user="postgres",password="1",port=5432)
+    video_conn=psycopg2.connect("localhost","cangerek","cangerek","3095",port=5432)
     video_cur = video_conn.cursor()
     sorgu = f"select * from videotable where id = {VideoId}"
 
@@ -158,8 +158,8 @@ def KisiTanimla(Id):
             print("facelist : "+str(face_list))
             print("face_ratio_list : "+str(face_ratio_list))
         
-        db_operations.DbInitiliazer(host="localhost",dbname="flask_db",user="postgres",password="1",port=5432)
-        db_operations.InsertDataToAnalyzePerFrame(host="localhost",dbname="flask_db",user="postgres",password="1",port=5432,RecievedData1=face_list,RecievedData2=face_ratio_list,videoId=Id,frameNumber = i)
+        db_operations.DbInitiliazer("localhost","cangerek","cangerek","3095",port=5432)
+        db_operations.InsertDataToAnalyzePerFrame("localhost","cangerek","cangerek","3095",port=5432,RecievedData1=face_list,RecievedData2=face_ratio_list,videoId=Id,frameNumber = i)
 
 
                     
@@ -170,9 +170,9 @@ def KisiTanimla(Id):
     print("Ali Bilgileri :"+str((aliKayit))+" sn")
     print("Besim Bilgileri :"+str((besimKayit))+" sn")
     print("Veritabanına Kaydediliyor.")
-    db_operations.InsertDataToAnalyzeForPerson(host='localhost',dbname="flask_db",user="postgres",password="1",port=5432,person="CelalSengor",RecievedData=celalKayit,videoId=Id)
-    db_operations.InsertDataToAnalyzeForPerson(host='localhost',dbname="flask_db",user="postgres",password="1",port=5432,person="MehmetAliBirand",RecievedData=aliKayit,videoId=Id)
-    db_operations.InsertDataToAnalyzeForPerson(host='localhost',dbname="flask_db",user="postgres",password="1",port=5432,person="BesimTibuk",RecievedData=besimKayit,videoId=Id)
+    db_operations.InsertDataToAnalyzeForPerson("localhost","cangerek","cangerek","3095",port=5432,person="CelalSengor",RecievedData=celalKayit,videoId=Id)
+    db_operations.InsertDataToAnalyzeForPerson("localhost","cangerek","cangerek","3095",port=5432,person="MehmetAliBirand",RecievedData=aliKayit,videoId=Id)
+    db_operations.InsertDataToAnalyzeForPerson("localhost","cangerek","cangerek","3095",port=5432,person="BesimTibuk",RecievedData=besimKayit,videoId=Id)
     print("kaydedildi.")
 
 
@@ -195,7 +195,7 @@ def KafaSay(videoId):
         writedPath = "/home/can/Desktop/Calismalar/CanPython/Flask/deneme/static/committed"+str(i)+".png"
         cv2.imwrite(writedPath,img_rgb)
         bilgiler.append((i,len(faces)))
-    db_operations.InsertDataToFaceNumberTable(host="localhost",dbname="flask_db",user="postgres",password="1",port=5432,RecievedData=bilgiler,videoId=videoId)
+    db_operations.InsertDataToFaceNumberTable("localhost","cangerek","cangerek","3095",port=5432,RecievedData=bilgiler,videoId=videoId)
     print("*************************")
     print("!!! BİLGİLER !!!")
     for k in bilgiler:
@@ -205,7 +205,7 @@ def KafaSay(videoId):
 
 @app.route('/compare/<int:id>/<person>')
 def CompareTime(person,id):
-    conn=psycopg2.connect(host="localhost",dbname="flask_db",user="postgres",password="1",port=5432)
+    conn=psycopg2.connect("localhost","cangerek","cangerek","3095",port=5432)
     cursor =conn.cursor()
     cursor.execute(f"SELECT * FROM analyzeperframe WHERE id={id}")
     data = cursor.fetchall()
@@ -215,8 +215,8 @@ def CompareTime(person,id):
         return render_template("compareTime.html",person=person,BilgiDurumu=False)
     else:
 
-        onlyPersonFrameList = db_operations.faceComparisonbyFrames("localhost","flask_db","postgres","1",5432,person)
-        ratio_list = db_operations.GiveFaceRatio("localhost","flask_db","postgres","1",5432,onlyPersonFrameList,id)
+        onlyPersonFrameList = db_operations.faceComparisonbyFrames("localhost","cangerek","cangerek","3095",5432,person)
+        ratio_list = db_operations.GiveFaceRatio("localhost","cangerek","cangerek","3095",5432,onlyPersonFrameList,id)
         return render_template("compareTime.html",person=person,BilgiDurumu=True,onlyPersonFrameList=onlyPersonFrameList,ratio_list=ratio_list,VideoId=id,firstFrame=firstFrame)
 
 
@@ -231,14 +231,14 @@ def showFrame(id,frame):
 @app.route('/delete/videoId=<int:id>/frame=<int:frame>',methods=['GET','POST'])
 def deleteFrame(id,frame):
     if(request.method=="POST"):
-        db_operations.DeleteFrameWithIdentifier("localhost","flask_db","postgres","1",5432,id,frame)
-        db_operations.DeleteDataFromFaceNumberTable("localhost","flask_db","postgres","1",5432,id,frame)
+        db_operations.DeleteFrameWithIdentifier("localhost","cangerek","cangerek","3095",5432,id,frame)
+        db_operations.DeleteDataFromFaceNumberTable("localhost","cangerek","cangerek","3095",5432,id,frame)
         return render_template('index.html')
 
 
 @app.route('/info/videoId=<int:Id>')
 def Goruntule(Id):
-    data =db_operations.SelectAllFaceTableData("localhost","flask_db","postgres","1",5432,Id)
+    data =db_operations.SelectAllFaceTableData("localhost","cangerek","cangerek","3095",5432,Id)
     print(data[0])
     transferredData=[]
     try:
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     
     
     try:
-        db_operations.DbInitiliazer("localhost","flask_db","postgres","1",5432)
+        db_operations.DbInitiliazer("localhost","cangerek","cangerek","3095",5432)
     except Exception:
         print("hata")
     
