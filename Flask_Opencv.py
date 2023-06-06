@@ -25,10 +25,6 @@ isRead =False
 known_faces = []
 known_names = []
 
-bilgiler = []
-celalKayit =[]
-aliKayit =[]
-besimKayit=[]
 
 
 def VideoEkle(videoLink):
@@ -72,12 +68,17 @@ def imgExtracter(Id):
         print("Video : "+VIDEO_URL)
         vidcap = cv2.VideoCapture(VIDEO_URL)
         success,image = vidcap.read()
+        path="data/video"+str(Id)
+        isExists = os.path.exists(path)
+        if(isExists==False):
+            os.makedirs(path)
         success = True
         while success:
             vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000))    # added this line 
             success,image = vidcap.read()
             print ('Read a new frame: ', success)
-            cv2.imwrite("data/frame%d.jpg" % count, image)    # save frame as JPEG file
+            writeString = "data/video"+str(Id)+"/frame"+str(count)+".jpg"
+            cv2.imwrite(writeString, image)    # save frame as JPEG file
             count = count + 1
     else:
         print("Veritabanında girilen Id de bir video yok")
@@ -102,17 +103,21 @@ def KisiTanimla(Id):
 
     print("bilinmeyen yüzlere bakiliyor...")
     print("*******************************")
-    
-    for i in range(80,len(os.listdir("data"))):
+    celalKayit =[]
+    aliKayit =[]
+    besimKayit=[]
+    for i in range(80, len(os.listdir(f"data/video{Id}"))):
         filename = f"frame{i}.jpg"
+
+        
         face_list =[]
         face_ratio_list =[]
         print("#########################")
         print(filename)
         
-        print("Dosya var mi :"+str(os.path.exists(f"data/{filename}")))
+        print("Dosya var mi :"+str(os.path.exists(f"data/video{Id}/{filename}")))
         print("*****************")
-        image =cv2.imread(f"data/{filename}")
+        image =cv2.imread(f"data/video{Id}/{filename}")
         imageWidth, imageHeight, imageChannel= image.shape
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
@@ -177,11 +182,15 @@ def KisiTanimla(Id):
 
 
 def KafaSay(videoId):
-    lst = os.listdir("data")
-    
+    bilgiler=[]
+    lst = os.listdir("data/video"+str(videoId))
+    path ="static/"+"video"+str(videoId)
+    isExists = os.path.exists(path)
+    if(isExists ==False):
+        os.makedirs(path)
     numberFiles = len(lst)
     for i in range(numberFiles):
-        image_path ='data/frame'+str(i)+'.jpg'
+        image_path ='data/video'+str(videoId)+'/frame'+str(i)+'.jpg'
         img =cv2.imread(image_path)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -192,7 +201,7 @@ def KafaSay(videoId):
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 4)
             
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        writedPath = "/home/can/Desktop/Calismalar/CanPython/Flask/deneme/static/committed"+str(i)+".png"
+        writedPath = "/home/can/Desktop/Calismalar/CanPython/Flask/deneme/static/video"+str(videoId)+'/committed'+str(i)+".png"
         cv2.imwrite(writedPath,img_rgb)
         bilgiler.append((i,len(faces)))
     db_operations.InsertDataToFaceNumberTable(host="localhost",dbname="cangerek",user="cangerek",password="3095",port=5432,RecievedData=bilgiler,videoId=videoId)
@@ -207,15 +216,15 @@ def KafaSay(videoId):
 def CompareTime(person,id):
     conn=psycopg2.connect(host="localhost",dbname="cangerek",user="cangerek",password="3095",port=5432)
     cursor =conn.cursor()
-    cursor.execute(f"SELECT * FROM analyzeperframe WHERE id={id}")
+    cursor.execute(f"SELECT * FROM analyzeperframe WHERE id={id} ORDER BY frame ASC")
     data = cursor.fetchall()
-    firstFrame=data[0][1]  
-    print("Data :"+str(data))
+    
     if(data ==[]):
         return render_template("compareTime.html",person=person,BilgiDurumu=False)
     else:
-
-        onlyPersonFrameList = db_operations.faceComparisonbyFrames(host="localhost",dbname="cangerek",user="cangerek",password="3095",port=5432,person=person)
+        firstFrame=data[0][1]  
+        print("Data :"+str(data))
+        onlyPersonFrameList = db_operations.faceComparisonbyFrames(host="localhost",dbname="cangerek",user="cangerek",password="3095",port=5432,person=person,videoId=id)
         ratio_list = db_operations.GiveFaceRatio(host="localhost",dbname="cangerek",user="cangerek",password="3095",port=5432,RecievedData=onlyPersonFrameList,videoId=id)
         return render_template("compareTime.html",person=person,BilgiDurumu=True,onlyPersonFrameList=onlyPersonFrameList,ratio_list=ratio_list,VideoId=id,firstFrame=firstFrame)
 
@@ -223,8 +232,9 @@ def CompareTime(person,id):
 
 @app.route('/show/videoId=<int:id>/frame=<int:frame>',methods=['GET','POST'])
 def showFrame(id,frame):
-    if(request.method=='POST'):
-        imgsrc="committed"+str(frame)+".png"
+    if request.form =="post":
+             
+        imgsrc="video"+str(id)+"/committed"+str(frame)+".png"
         print(imgsrc)
         return render_template("showFrame.html",imgsrc=imgsrc,frame=frame,id=id)
 
@@ -254,9 +264,6 @@ def Goruntule(Id):
         return render_template("info.html",entries=transferredData, BilgiDurumu =True,videoId=Id)
 
 
-@app.route('/info/detay')
-def detayliInfo():
-    return render_template("infoDetayli.html",celalKayit=celalKayit,aliKayit=aliKayit,besimKayit=besimKayit)
 
 @app.route('/commit/<int:Id>')
 def home(Id):
