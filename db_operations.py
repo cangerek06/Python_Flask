@@ -199,10 +199,10 @@ def GiveFaceRatio(host,dbname,user,password,port,RecievedData,videoId):
     conn.close()
     return ratioList
 
-def faceComparisonbyFrames(host,dbname,user,password,port,person):
+def faceComparisonbyFrames(host,dbname,user,password,port,person,videoId):
     conn =psycopg2.connect(host=host,dbname=dbname,user=user,password=password,port=port)
     cursor = conn.cursor()
-    DataQuery = "SELECT * FROM analyzeperframe"
+    DataQuery = f"SELECT * FROM analyzeperframe WHERE id={videoId} ORDER BY frame ASC"
     cursor.execute(DataQuery)
     Data = (cursor.fetchall())
     print("Data : "+str(Data))
