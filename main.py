@@ -8,7 +8,7 @@ import json
 import psycopg2
 
 import db_operations
-import deneme.functions as functions
+import functions as functions
 
 from dotenv import load_dotenv, dotenv_values
 
