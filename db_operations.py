@@ -83,11 +83,11 @@ def SelectAllFaceTableData(host,dbname,user,password,port,videoId):
     print("$$$$$$$$$$$$$$$$$$$")
     return data
 #cas
-def SelectPerSecondAnalysisWithFrame(host,dbname,user,password,port,frame):
+def SelectPerSecondAnalysisWithFrame(host,dbname,user,password,port,id,frame):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
     
-    DataQuery =f"select * from analyzeperframe where frame = {frame}" 
+    DataQuery =f"select * from analyzeperframe where frame = {frame} AND id={id}" 
     cursor.execute(DataQuery)
     Data = cursor.fetchall()
     if(len(Data)==0):
