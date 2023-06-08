@@ -56,7 +56,7 @@ def deneme(videoId):
         i=0
         success = True
         while success:
-            vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000))    # added this line 
+            vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*10000))   
             success,image = vidcap.read()
             if(success ==False):
                 break
@@ -69,10 +69,12 @@ def deneme(videoId):
             img_area = imageHeight * imageWidth
             gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            faces = face_classifier.detectMultiScale(image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
+            faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
             print("classifier sonrası")
-            bilgiler.append((i,len(faces)))
+            
             locations = face_recognition.face_locations(image)
+            bilgiler.append((i,len(locations)))
+            print("yüz sayısı : "+str(len(locations)))
             print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
             print("face recogantion encodings sonrası")

@@ -66,6 +66,7 @@ def showFrame():
             dataDict["people"]    =   dbData[0][2]
             dataDict["ratio"]     =   dbData[0][3]
             dataDict["identifier"]=   dbData[0][4]
+
             returnedData["data"].append(dataDict)
             return returnedData
         
@@ -117,33 +118,13 @@ def Goruntule():
 @app.route('/commit',methods=['POST'])
 def home():
     if(request.method=="POST"):
-        situtation =True
+       try:
         data = request.get_json()
-        try: 
-            videoId = data["videoId"]
-            
-        except:
-            print("VideoId girmeyi unuttunuz.")
-            situtation = False
-        print(situtation)
-        try:
-            functions.imgExtracter(videoId)
-            
-        except Exception:
-            pass
-            
-        print("Video'dan Fotolar Çekildi.")
-        
-        try:
-            functions.KafaSay(videoId)
-            functions.KisiTanimla(videoId)
-        except Exception:
-            situtation =False
-        print("Fotolara yüz taramasi yapildi.")
-        print(situtation)
-        if(situtation ==True):
-            return "Video Başarıyla işlendi."
-        return "Bir hata Oluştu."
+        videoId= int(data["videoId"])
+        functions.allCalculations(videoId=videoId)
+        return "video başarıyla işlendi."
+       except Exception as e:
+            return "Bir hata oldu : "+str(e)
 
 
 @app.route('/')
@@ -151,10 +132,21 @@ def main():
     return 'Flask Opencv Face Recognation App'
 
 
+@app.route('/getFrameView',methods = ['GET','POST'])
+def getFrameVİew():
+    if request.method=='GET':
+        try:
+            data = request.get_json()
+            frameNo = data["frameNo"]
+            videoId = data["videoId"]
+            functions.getFrameView(videoId=videoId,frameNo=frameNo)
+            return "asdasd"
+        except Exception as e:
+            return "Hata oluştu :"+str(e)
+
+
+
 if __name__ == '__main__':
-    #KisiTanimla()
-    
-    
     try:
         db_operations.DbInitiliazer(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"))
     except Exception:
