@@ -66,18 +66,18 @@ def deneme(videoId):
             face_ratio_list =[]
             print("classifier öncesi")
             imageWidth, imageHeight, imageChannel= image.shape
+            img_area = imageHeight * imageWidth
             gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
+            faces = face_classifier.detectMultiScale(image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
             print("classifier sonrası")
             bilgiler.append((i,len(faces)))
-            print("face recogantion locations öncesi")
             locations = face_recognition.face_locations(image)
             print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
             print("face recogantion encodings sonrası")
             image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
-            for face_encoding, face_location, (x,y,w,h)  in zip(encoding, locations, faces):
+            for face_encoding, (x,y,w,h)  in zip(encoding, faces):
                 results = face_recognition.compare_faces(known_faces,face_encoding,TOLERANCE)
                 match = None
                 face_area =w * h
@@ -87,11 +87,11 @@ def deneme(videoId):
                 print("Face Width : "+str(w))
                 print("Face Height : "+str(h))
                 print("***********************")
-                print("İmage Area : "+str(imageHeight * imageWidth))
-                print("Face Area : "+str(h * w))
+                print("İmage Area : "+str(img_area))
+                print("Face Area : "+str(face_area))
                 print("***********************")
-                FaceRatio = (((h * w) /(imageHeight * imageWidth))*100)
-                print("Ratio of Face to Image : %"+str(((h * w) /(imageHeight * imageWidth))*100))
+                FaceRatio = (((face_area) /(imageHeight * imageWidth))*100)
+                print("Ratio of Face to Image : %"+str(FaceRatio))
 
                 if True in results:
                     match = known_names[results.index(True)]
