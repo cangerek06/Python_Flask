@@ -71,9 +71,13 @@ def deneme(videoId):
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
             faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
             print("classifier sonrası")
-            
-            locations = face_recognition.face_locations(image)
-            bilgiler.append((i,len(locations)))
+            locations2 = []
+            for i in faces:
+                print("face : "+str(i))
+                print("asdasdasdasdasds")
+
+            locations = face_recognition.face_locations(image,model="cnn")
+            bilgiler.append((i,len(faces)))
             print("yüz sayısı : "+str(len(locations)))
             print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
@@ -123,7 +127,52 @@ def deneme(videoId):
 
 
 
+def denemek():
+        bilgiler = []
+        vidcap = cv2.VideoCapture("videos/video1.mp4")
+        success,image = vidcap.read()
+        i=0
+        count = 0
+        success = True
+        while success:
+            vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*10000))   
+            success,image = vidcap.read()
+            if(success ==False):
+                break
+            print (f"{str(i)} Read a new frame: "+str(success)) 
+            count = count + 1
+            face_list =[]
+            face_ratio_list =[]
+            print("classifier öncesi")
+            imageWidth, imageHeight, imageChannel= image.shape
+            img_area = imageHeight * imageWidth
+            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+            faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
+            print("classifier sonrası")
+            locations2 = []
+            
+            
+            locations = face_recognition.face_locations(image)
+            
+            print("face 1: "+str(locations))
+            print("face 2: "+str(faces))
+            print("asdasdasdasdasds")
+            bilgiler.append((i,len(locations)))
+            print("yüz sayısı : "+str(len(locations)))
+            print("face recogantion locations sonrası")
+            encoding = face_recognition.face_encodings(image,faces)
+            print("face recogantion encodings sonrası")
+            image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
+            i =i+1
+
+
+
+
+
+
 
 if __name__ =='__main__':
-    db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
+    #db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
+    #db_operations.SelectAllFrameDatas(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),id=1)
     deneme(1)

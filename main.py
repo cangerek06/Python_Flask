@@ -5,10 +5,11 @@ import face_recognition
 import os
 import numpy as np
 import json
+import ast
 import psycopg2
-
+import listFunctions
 import db_operations
-import functions as functions
+import faceFunctions as faceFunctions
 
 from dotenv import load_dotenv, dotenv_values
 
@@ -51,6 +52,19 @@ def CompareTime():
         except Exception as e:
             return str(e) 
         
+@app.route('/showAll',methods =['GET'])
+def showAll():
+    if request.method =="GET":
+        try:
+            data =request.get_json()  
+            videoId=data["videoId"]
+            returnedData = listFunctions.showAll(videoId)
+            return returnedData
+        except Exception as e:
+            return "Error : "+str(e)
+        
+            
+
 @app.route('/show',methods=['GET'])
 def showFrame():
     if request.method =="GET":
@@ -59,19 +73,21 @@ def showFrame():
             videoId=data["videoId"]
             frame = data["frame"]
             dbData = db_operations.SelectPerSecondAnalysisWithFrame(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),videoId,frame)
-            returnedData = {"data":[]}
-            dataDict ={}
-            dataDict["videoId"]   =   dbData[0][0]
-            dataDict["frame"]     =   dbData[0][1]
-            dataDict["people"]    =   dbData[0][2]
-            dataDict["ratio"]     =   dbData[0][3]
-            dataDict["identifier"]=   dbData[0][4]
+            if(len(dbData) != 0):
+                returnedData = {"data":[]}
+                dataDict ={}
+                dataDict["videoId"]   =   dbData[0][0]
+                dataDict["frame"]     =   dbData[0][1]
+                dataDict["people"]    =   dbData[0][2]
+                dataDict["ratio"]     =   dbData[0][3]
+                dataDict["identifier"]=   dbData[0][4]
 
-            returnedData["data"].append(dataDict)
-            return returnedData
-        
+                returnedData["data"].append(dataDict)
+                return returnedData
+            else : 
+                return "Girilen video işleme sokulmamış veya frame bilgisi silinmiş."
         except Exception as e:
-            return "2"
+            return "Error : "+str(e)
             
 
 @app.route('/delete',methods=['POST'])
@@ -92,28 +108,13 @@ def deleteFrame():
 def Goruntule():
 
     if request.method=="GET":
-        jsonData = request.get_json()
         try:
+            jsonData = request.get_json()
             videoId = jsonData['videoId']
-        except Exception:
-            return "Video Id girmeyi unuttunuz."
-        dbData =db_operations.SelectAllFaceTableData(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),videoId)
-        #returnData is a Dictionary
-        returnData ={"data":[]}
-        try:
-            for i in range(0,len(dbData)):
-                data ={}
-                data["frame"]=str(dbData[i][1])
-                data["Number of Faces"]=str(dbData[i][2])
-                returnData["data"].append(data)
-            
-        except Exception:
-            print(Exception)
-
-        if(returnData ==[]):
-            return "Video İşleme Sokulmamış."
-        else:
-            return returnData
+            return listFunctions.getInfo(videoId=videoId)
+        except Exception as e:
+            return "Hata : "+str(e)
+        
 
 @app.route('/commit',methods=['POST'])
 def home():
@@ -121,26 +122,26 @@ def home():
        try:
         data = request.get_json()
         videoId= int(data["videoId"])
-        functions.allCalculations(videoId=videoId)
+        faceFunctions.ModifiedAllCalculations(videoId=videoId)
         return "video başarıyla işlendi."
        except Exception as e:
             return "Bir hata oldu : "+str(e)
 
 
-@app.route('/')
+@app.route('/') 
 def main():
     return 'Flask Opencv Face Recognation App'
 
 
-@app.route('/getFrameView',methods = ['GET','POST'])
+@app.route('/getFrameView',methods = ['GET'])
 def getFrameVİew():
     if request.method=='GET':
         try:
             data = request.get_json()
             frameNo = data["frameNo"]
             videoId = data["videoId"]
-            functions.getFrameView(videoId=videoId,frameNo=frameNo)
-            return "asdasd"
+            faceFunctions.getFrameView(videoId=videoId,frameNo=frameNo)
+            return "Başarılı."
         except Exception as e:
             return "Hata oluştu :"+str(e)
 
