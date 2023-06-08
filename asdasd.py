@@ -64,14 +64,18 @@ def deneme(videoId):
             count = count + 1
             face_list =[]
             face_ratio_list =[]
-
+            print("classifier öncesi")
             imageWidth, imageHeight, imageChannel= image.shape
             gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
             faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
+            print("classifier sonrası")
             bilgiler.append((i,len(faces)))
-            locations = face_recognition.face_locations(image,2)
+            print("face recogantion locations öncesi")
+            locations = face_recognition.face_locations(image)
+            print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
+            print("face recogantion encodings sonrası")
             image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
             for face_encoding, face_location, (x,y,w,h)  in zip(encoding, locations, faces):
                 results = face_recognition.compare_faces(known_faces,face_encoding,TOLERANCE)
