@@ -35,7 +35,7 @@ def getFrameView(videoId,frameNo):
     img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     while True:
-
+        img_rgb= cv2.resize(img_rgb,(300,450))
         cv2.imshow('FrameShowWindow',img_rgb)
         key = cv2.waitKey(1)
         if(key ==ord('q')):
@@ -81,7 +81,10 @@ def allCalculations(videoId):
         while True:
             vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000 / int(os.getenv("FRAMESPERSECOND"))))    # added this line 
             success,image = vidcap.read()
-            image =cv2.resize(image,(0, 0),fx=0.3, fy=0.3, interpolation = cv2.INTER_AREA)
+            try:
+                image =cv2.resize(image,(0, 0),fx=0.3, fy=0.3, interpolation = cv2.INTER_AREA)
+            except Exception as e:
+                print(e)
             if(success ==False):
                 break
             print("can")
@@ -94,112 +97,17 @@ def allCalculations(videoId):
             img_area = imageHeight * imageWidth
             gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            faces = face_classifier.detectMultiScale(image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
+            faces = face_classifier.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
+            print("789879")
+            print(faces)
+            print(len(faces))
+            print("789879")
             print("classifier sonrası")
             locations = face_recognition.face_locations(image,model="hog")
-            print("yüz sayısı: "+str(len(locations)))
-            bilgiler.append((i,len(locations)))
             print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
-            print("face recogantion encodings sonrası")
-            image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
-            for face_encoding, (x,y,w,h)  in zip(encoding, faces):
-                results = face_recognition.compare_faces(known_faces,face_encoding,TOLERANCE)
-                match = None
-                face_area =w * h
-                print("İmage Width : "+str(imageWidth))
-                print("İmage Height : "+str(imageHeight))
-                print("***********************")
-                print("Face Width : "+str(w))
-                print("Face Height : "+str(h))
-                print("***********************")
-                print("İmage Area : "+str(img_area))
-                print("Face Area : "+str(face_area))
-                print("***********************")
-                FaceRatio = (((face_area) /(imageHeight * imageWidth))*100)
-                print("Ratio of Face to Image : %"+str(FaceRatio))
-
-                if True in results:
-                    match = known_names[results.index(True)]
-                    print(f"Match Found : {match}")
-                    if(match =="celal"):
-                        celalKayit.append((i))
-                        face_list.append(("CelalSengor"))
-                        face_ratio_list.append(FaceRatio)
-                    if(match=="ali"):
-                        aliKayit.append((i))
-                        face_list.append(("MehmetAliBirand"))
-                        face_ratio_list.append(FaceRatio)
-                    if(match=="besim"):
-                        besimKayit.append((i))
-                        face_list.append(("BesimTibuk"))
-                        face_ratio_list.append(FaceRatio)
-            #db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
-            #db_operations.InsertDataToAnalyzePerFrame(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData1=face_list,RecievedData2=face_ratio_list,videoId=videoId,frameNumber = i)
-            i+=1
-
-        #db_operations.InsertDataToFaceNumberTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData=bilgiler,videoId=videoId)
-        print("********Bilgiler**********")
-        print("Celal Hoca Bilgileri :"+str((celalKayit))+" sn")
-        print("Ali Bilgileri :"+str((aliKayit))+" sn")
-        print("Besim Bilgileri :"+str((besimKayit))+" sn")
-        print("Veritabanına Kaydediliyor.")
-
-
-def ModifiedAllCalculations(videoId):
-    known_faces = []
-    known_names = []
-    video_conn=psycopg2.connect(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
-    video_cur = video_conn.cursor()
-    sorgu = f"select * from videotable where id = {videoId}"
-
-    video_cur.execute(sorgu)
-    cekilenVeri =video_cur.fetchall()
-    VIDEO_URL = cekilenVeri[0][1] # video table'dan video linkinin çekilmesi 
-
-    #yazılıma önceden verilen fotolardaki yüzlerin encdo edilmesi ve isimlerinin atanması
-    for name in os.listdir(KNOWN_FACES_DIR):
-        for filename in os.listdir(f"{KNOWN_FACES_DIR}/{name}"):
-            image = face_recognition.load_image_file(f"{KNOWN_FACES_DIR}/{name}/{filename}")
-            image =cv2.imread(f"{KNOWN_FACES_DIR}/{name}/{filename}")
-            encoding = face_recognition.face_encodings(image)[0]
-            print(encoding)
-            known_faces.append(encoding)
-            known_names.append(name)
-
-    print("Sisteme yüzler tanıtıldı")
-    count = 0
-    if(VIDEO_URL !=""):
-        celalKayit =[]
-        aliKayit =[]
-        besimKayit=[]
-        bilgiler = []
-        print("Veritabınından Cekilen Video : "+VIDEO_URL)
-        vidcap = cv2.VideoCapture(VIDEO_URL)
-        success,image = vidcap.read()
-        i=0
-        success = True
-        while success:
-            vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000/int(os.getenv("FRAMESPERSECOND"))))    # added this line 
-            success,image = vidcap.read()
-            if(success ==False):
-                break
-            print (f"{str(i)} Read a new frame: "+str(success)) 
-            count = count + 1
-            face_list =[]
-            face_ratio_list =[]
-            print("classifier öncesi")
-            imageWidth, imageHeight, imageChannel= image.shape
-            img_area = imageHeight * imageWidth
-            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            faces = face_classifier.detectMultiScale(image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
-            print("classifier sonrası")
+            print("yüz sayısı: "+str(len(faces)))
             bilgiler.append((i,len(faces)))
-            
-            locations = face_recognition.face_locations(image,model="hog")
-            print("face recogantion locations sonrası")
-            encoding = face_recognition.face_encodings(image,locations)
             print("face recogantion encodings sonrası")
             image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
             for face_encoding, (x,y,w,h)  in zip(encoding, faces):
@@ -243,7 +151,6 @@ def ModifiedAllCalculations(videoId):
         print("Ali Bilgileri :"+str((aliKayit))+" sn")
         print("Besim Bilgileri :"+str((besimKayit))+" sn")
         print("Veritabanına Kaydediliyor.")
-
 
 
 
