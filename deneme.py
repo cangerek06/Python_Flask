@@ -1,5 +1,6 @@
 import face_recognition
 import os
+import numpy as np
 import cv2
 
 KNOWN_FACES_DIR ="known_faces"
@@ -30,11 +31,21 @@ for name in os.listdir(KNOWN_FACES_DIR):
 image_to_test = face_recognition.load_image_file("known_faces/ali/ali.png")
 image_to_test_encoding = face_recognition.face_encodings(image_to_test)[0]
 
-# See how far apart the test image is from the known faces
-face_distances = face_recognition.face_distance(known_faces, image_to_test_encoding)
 
-for i, face_distance in enumerate(face_distances):
-    print("The test image has a distance of {:.2} from known image #{}".format(face_distance, i))
-    print("- With a normal cutoff of 0.6, would the test image match the known image? {}".format(face_distance < 0.6))
-    print("- With a very strict cutoff of 0.5, would the test image match the known image? {}".format(face_distance < 0.5))
-    print(known_names[i])
+
+
+
+
+def face_distance(face_encodings, face_to_compare):
+    if len(face_encodings) == 0:
+        return np.empty((0))
+    face_dist_value = np.linalg.norm(face_encodings - face_to_compare, axis=1)
+    print('[Face Services | face_distance] Distance between two faces is {}'.format(face_dist_value))
+    return face_dist_value 
+
+print(len(face_distance(known_faces,image_to_test_encoding)))
+
+for i,k in zip(face_distance(known_faces,image_to_test_encoding),range(0,len(face_distance(known_faces,image_to_test_encoding)))):
+    if (i < 0.6):
+        print("person matched by : %"+str((1 - i )* 100))
+        print("Person : "+str(known_names[k]))
