@@ -97,7 +97,7 @@ def allCalculations(videoId):
             img_area = imageHeight * imageWidth
             gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.01, minNeighbors=5, minSize=(40, 40))
+            faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
             print("789879")
             print(faces)
             print(len(faces))
