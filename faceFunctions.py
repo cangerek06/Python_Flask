@@ -34,11 +34,17 @@ def getFrameView(videoId,frameNo):
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 4)
     img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    cv2.imshow('FrameShowWindow',img_rgb)
+    while True:
 
-    cv2.waitKey(15000)
+        cv2.imshow('FrameShowWindow',img_rgb)
+        key = cv2.waitKey(1)
+        if(key ==ord('q')):
+            break
 
-    cv2.destroyAllWindows()
+    video.release()
+    cv2.destroyAllWindows()    
+
+    
     
 
 def allCalculations(videoId):
@@ -71,14 +77,14 @@ def allCalculations(videoId):
         bilgiler = []
         print("Veritabınından Cekilen Video : "+VIDEO_URL)
         vidcap = cv2.VideoCapture(VIDEO_URL)
-        success,image = vidcap.read()
         i=0
-        success = True
-        while success:
+        while True:
             vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000 / int(os.getenv("FRAMESPERSECOND"))))    # added this line 
             success,image = vidcap.read()
+            image =cv2.resize(image,(0, 0),fx=0.3, fy=0.3, interpolation = cv2.INTER_AREA)
             if(success ==False):
                 break
+            print("can")
             print (f"{str(i)} Read a new frame: "+str(success)) 
             count = count + 1
             face_list =[]
@@ -90,9 +96,9 @@ def allCalculations(videoId):
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
             faces = face_classifier.detectMultiScale(image, scaleFactor=1.05, minNeighbors=5, minSize=(40, 40))
             print("classifier sonrası")
-            bilgiler.append((i,len(faces)))
-            print("yüz sayısı : "+str(len(faces)))
-            locations = face_recognition.face_locations(image)
+            locations = face_recognition.face_locations(image,model="hog")
+            print("yüz sayısı: "+str(len(locations)))
+            bilgiler.append((i,len(locations)))
             print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
             print("face recogantion encodings sonrası")
@@ -128,11 +134,11 @@ def allCalculations(videoId):
                         besimKayit.append((i))
                         face_list.append(("BesimTibuk"))
                         face_ratio_list.append(FaceRatio)
-            db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
-            db_operations.InsertDataToAnalyzePerFrame(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData1=face_list,RecievedData2=face_ratio_list,videoId=videoId,frameNumber = i)
+            #db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
+            #db_operations.InsertDataToAnalyzePerFrame(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData1=face_list,RecievedData2=face_ratio_list,videoId=videoId,frameNumber = i)
             i+=1
 
-        db_operations.InsertDataToFaceNumberTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData=bilgiler,videoId=videoId)
+        #db_operations.InsertDataToFaceNumberTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData=bilgiler,videoId=videoId)
         print("********Bilgiler**********")
         print("Celal Hoca Bilgileri :"+str((celalKayit))+" sn")
         print("Ali Bilgileri :"+str((aliKayit))+" sn")
@@ -191,7 +197,7 @@ def ModifiedAllCalculations(videoId):
             print("classifier sonrası")
             bilgiler.append((i,len(faces)))
             
-            locations = face_recognition.face_locations(image,model="cnn")
+            locations = face_recognition.face_locations(image,model="hog")
             print("face recogantion locations sonrası")
             encoding = face_recognition.face_encodings(image,locations)
             print("face recogantion encodings sonrası")

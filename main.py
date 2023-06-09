@@ -122,7 +122,7 @@ def home():
        try:
         data = request.get_json()
         videoId= int(data["videoId"])
-        faceFunctions.ModifiedAllCalculations(videoId=videoId)
+        faceFunctions.allCalculations(videoId=videoId)
         return "video başarıyla işlendi."
        except Exception as e:
             return "Bir hata oldu : "+str(e)
