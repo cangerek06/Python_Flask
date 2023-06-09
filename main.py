@@ -80,7 +80,8 @@ def showFrame():
                 dataDict["frame"]     =   dbData[0][1]
                 dataDict["people"]    =   dbData[0][2]
                 dataDict["ratio"]     =   dbData[0][3]
-                dataDict["identifier"]=   dbData[0][4]
+                dataDict["matchPoint"]=   dbData[0][4]
+                dataDict["identifier"]=   dbData[0][5]
 
                 returnedData["data"].append(dataDict)
                 return returnedData

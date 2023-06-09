@@ -19,15 +19,19 @@ def showAll(videoId):
         return "Video bilgileri Veritabanında Bulunmuyor."
     for i in range (0,len(data)):
         dataDict={}
+        print("cas")
         dataDictPeople={"PersonInfo":[]}
         dataDict["videoId"] = data[i][0]
         dataDict["frame"] = data[i][1]
-        dataDict["identifier"] = data[i][4]
+        dataDict["identifier"] = data[i][5]
+        matchPointList =ast.literal_eval(data[i][4])
+        print(matchPointList[0])
         peopleList = ast.literal_eval(data[i][2])
         ratioList = ast.literal_eval(data[i][3])
         if(len(peopleList) > 1):
-            for i,k in zip(peopleList, ratioList):
+            for i,k,m in zip(peopleList, ratioList,matchPointList):
                 DataPeopleDict ={}
+                DataPeopleDict["matchPoint"] = m
                 DataPeopleDict["person"] = i
                 DataPeopleDict["ratio"] = k
                 dataDictPeople["PersonInfo"].append(DataPeopleDict)
@@ -49,3 +53,8 @@ def getInfo(videoId):
             return returnData
         else:
              return "Video işleme sokulmamış"
+
+
+if __name__=="__main__":
+     asa=showAll(1)
+     print(asa)

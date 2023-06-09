@@ -87,7 +87,7 @@ def allCalculations(videoId):
             vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000 / int(os.getenv("FRAMESPERSECOND"))))    # added this line 
             success,image = vidcap.read()
             try:
-                image =cv2.resize(image,(0, 0),fx=0.6, fy=0.6, interpolation = cv2.INTER_AREA)
+                image =cv2.resize(image,(0, 0),fx=0.4, fy=0.4, interpolation = cv2.INTER_AREA)
             except Exception as e:
                 print(e)
             if(success ==False):
@@ -97,6 +97,7 @@ def allCalculations(videoId):
             count = count + 1
             face_list =[]
             face_ratio_list =[]
+            match_point_list = []
             print("classifier öncesi")
             imageWidth, imageHeight, imageChannel= image.shape
             img_area = imageHeight * imageWidth
@@ -138,24 +139,27 @@ def allCalculations(videoId):
                     #print("yüz eşleşme oranı : "+str(face_distance))
                     if(match =="celal"):
                         face_distancePoint = face_distance(known_faces[results.index(True)],face_encoding)
-                        print("Distance : "+str(face_distancePoint))
+                        print("Match Point : "+str((1 - face_distancePoint)* 100))
+                        match_point_list.append(str((1 - face_distancePoint)* 100))
                         celalKayit.append((i))
                         face_list.append(("CelalSengor"))
                         face_ratio_list.append(FaceRatio)
                     if(match=="ali"):
                         face_distancePoint = face_distance(known_faces[results.index(True)],face_encoding)
-                        print("Distance : "+str(face_distancePoint))
+                        print("Match Point : "+str((1 - face_distancePoint)* 100))
+                        match_point_list.append(str((1 - face_distancePoint)* 100))
                         aliKayit.append((i))
                         face_list.append(("MehmetAliBirand"))
                         face_ratio_list.append(FaceRatio)
                     if(match=="besim"):
                         face_distancePoint = face_distance(known_faces[results.index(True)],face_encoding)
-                        print("Distance : "+str(face_distancePoint))
+                        print("Match Point : "+str((1 - face_distancePoint)* 100))
+                        match_point_list.append(str((1 - face_distancePoint)* 100))
                         besimKayit.append((i))
                         face_list.append(("BesimTibuk"))
                         face_ratio_list.append(FaceRatio)
             db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
-            db_operations.InsertDataToAnalyzePerFrame(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData1=face_list,RecievedData2=face_ratio_list,videoId=videoId,frameNumber = i)
+            db_operations.InsertDataToAnalyzePerFrame(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData1=face_list,RecievedData2=face_ratio_list,RecievedData3=match_point_list,videoId=videoId,frameNumber = i)
             i+=1
 
         db_operations.InsertDataToFaceNumberTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData=bilgiler,videoId=videoId)
