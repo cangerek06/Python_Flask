@@ -1,83 +1,40 @@
+import face_recognition
+import os
 import cv2
-import mediapipe as mp
-import time
+
+KNOWN_FACES_DIR ="known_faces"
+UNKNOWN_FACES_DIR="data"
+TOLERANCE = 0.6
+FRAME_THICKNESS = 3
+#VIDEO_URL =""
+FONT_THICKNESS = 2
+
+isRead =False
+
+known_faces = []
+known_names = []
+
+#yazılıma önceden verilen fotolardaki yüzlerin encdo edilmesi ve isimlerinin atanması
+for name in os.listdir(KNOWN_FACES_DIR):
+    for filename in os.listdir(f"{KNOWN_FACES_DIR}/{name}"):
+        image = face_recognition.load_image_file(f"{KNOWN_FACES_DIR}/{name}/{filename}")
+        image =cv2.imread(f"{KNOWN_FACES_DIR}/{name}/{filename}")
+        encoding = face_recognition.face_encodings(image)[0]
+        print(encoding)
+        known_faces.append(encoding)
+        known_names.append(name)
 
 
-class FaceDetector():
-    def __init__(self, minDetectionCon=0.5):
 
-        self.minDetectionCon = minDetectionCon
+# Load a test image and get encondings for it
+image_to_test = face_recognition.load_image_file("known_faces/ali/ali.png")
+image_to_test_encoding = face_recognition.face_encodings(image_to_test)[0]
 
-        self.mpFaceDetection = mp.solutions.face_detection
-        self.mpDraw = mp.solutions.drawing_utils
-        self.faceDetection = self.mpFaceDetection.FaceDetection(self.minDetectionCon)
+# See how far apart the test image is from the known faces
+face_distances = face_recognition.face_distance(known_faces, image_to_test_encoding)
 
-    def findFaces(self, img, draw=True):
-
-        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.results = self.faceDetection.process(imgRGB)
-        # print(self.results)
-        bboxs = []
-        if self.results.detections:
-            for id, detection in enumerate(self.results.detections):
-                bboxC = detection.location_data.relative_bounding_box
-                ih, iw, ic = img.shape
-                bbox = int(bboxC.xmin * iw), int(bboxC.ymin * ih), \
-                       int(bboxC.width * iw), int(bboxC.height * ih)
-                bboxs.append([id, bbox, detection.score])
-                if draw:
-                    img = self.fancyDraw(img,bbox)
-
-                    cv2.putText(img, f'{int(detection.score[0] * 100)}%',
-                            (bbox[0], bbox[1] - 20), cv2.FONT_HERSHEY_PLAIN,
-                            2, (255, 0, 255), 2)
-        return img, bboxs
-
-    def fancyDraw(self, img, bbox, l=30, t=5, rt= 1):
-        x, y, w, h = bbox
-        x1, y1 = x + w, y + h
-
-        cv2.rectangle(img, bbox, (255, 0, 255), rt)
-        # Top Left  x,y
-        cv2.line(img, (x, y), (x + l, y), (255, 0, 255), t)
-        cv2.line(img, (x, y), (x, y+l), (255, 0, 255), t)
-        # Top Right  x1,y
-        cv2.line(img, (x1, y), (x1 - l, y), (255, 0, 255), t)
-        cv2.line(img, (x1, y), (x1, y+l), (255, 0, 255), t)
-        # Bottom Left  x,y1
-        cv2.line(img, (x, y1), (x + l, y1), (255, 0, 255), t)
-        cv2.line(img, (x, y1), (x, y1 - l), (255, 0, 255), t)
-        # Bottom Right  x1,y1
-        cv2.line(img, (x1, y1), (x1 - l, y1), (255, 0, 255), t)
-        cv2.line(img, (x1, y1), (x1, y1 - l), (255, 0, 255), t)
-        return img
-
-
-def main():
-    cap = cv2.VideoCapture("videos/video2.mp4")
-    pTime = 0
-    detector = FaceDetector()
-    while True:
-        success, img = cap.read()
-        if success:
-            img, bboxs = detector.findFaces(img)
-            print(bboxs)
-
-            cTime = time.time()
-            fps = 1 / (cTime - pTime)
-            pTime = cTime
-            try:
-                cv2.putText(img, f'FPS: {int(fps)}', (20, 70), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 2)
-                cv2.imshow("Image", img)
-                key = cv2.waitKey(1)
-                if ord('q')==key:
-                    break
-            except Exception as e:
-                print(e)
-
-    cap.release()
-    cv2.destroyAllWindows() 
-
-
-if __name__ == "__main__":
-    main()
+for i, face_distance in enumerate(face_distances):
+    print("The test image has a distance of {:.2} from known image #{}".format(face_distance, i))
+    print("- With a normal cutoff of 0.6, would the test image match the known image? {}".format(face_distance < 0.6))
+    print("- With a very strict cutoff of 0.5, would the test image match the known image? {}".format(face_distance < 0.5))
+    print(known_names[i])

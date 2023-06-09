@@ -82,7 +82,7 @@ def allCalculations(videoId):
             vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*1000 / int(os.getenv("FRAMESPERSECOND"))))    # added this line 
             success,image = vidcap.read()
             try:
-                image =cv2.resize(image,(0, 0),fx=0.3, fy=0.3, interpolation = cv2.INTER_AREA)
+                image =cv2.resize(image,(0, 0),fx=0.4, fy=0.4, interpolation = cv2.INTER_AREA)
             except Exception as e:
                 print(e)
             if(success ==False):
@@ -97,7 +97,7 @@ def allCalculations(videoId):
             img_area = imageHeight * imageWidth
             gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            faces = face_classifier.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
+            faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.01, minNeighbors=5, minSize=(40, 40))
             print("789879")
             print(faces)
             print(len(faces))
@@ -105,12 +105,13 @@ def allCalculations(videoId):
             print("classifier sonrası")
             locations = face_recognition.face_locations(image,model="hog")
             print("face recogantion locations sonrası")
-            encoding = face_recognition.face_encodings(image,locations)
+            encodings = face_recognition.face_encodings(image,locations)
             print("yüz sayısı: "+str(len(faces)))
             bilgiler.append((i,len(faces)))
             print("face recogantion encodings sonrası")
             image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
-            for face_encoding, (x,y,w,h)  in zip(encoding, faces):
+            #face_distances = face_recognition.face_distance(known_faces, encodings)
+            for face_encoding, (x,y,w,h)  in zip(encodings, faces):
                 results = face_recognition.compare_faces(known_faces,face_encoding,TOLERANCE)
                 match = None
                 face_area =w * h
@@ -129,6 +130,7 @@ def allCalculations(videoId):
                 if True in results:
                     match = known_names[results.index(True)]
                     print(f"Match Found : {match}")
+                    #print("yüz eşleşme oranı : "+str(face_distance))
                     if(match =="celal"):
                         celalKayit.append((i))
                         face_list.append(("CelalSengor"))
@@ -138,6 +140,9 @@ def allCalculations(videoId):
                         face_list.append(("MehmetAliBirand"))
                         face_ratio_list.append(FaceRatio)
                     if(match=="besim"):
+                        """face_distances = face_recognition.face_distance(known_faces.index("besim"), face_encoding)
+                        index ,face_distance = enumerate(face_distances)
+                        print("kişinin eşleşme oranı : %"+str((1 - face_distance) *100))"""
                         besimKayit.append((i))
                         face_list.append(("BesimTibuk"))
                         face_ratio_list.append(FaceRatio)
