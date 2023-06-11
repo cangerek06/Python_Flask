@@ -28,7 +28,7 @@ def showAll(videoId):
         print(matchPointList[0])
         peopleList = ast.literal_eval(data[i][2])
         ratioList = ast.literal_eval(data[i][3])
-        if(len(peopleList) > 1):
+        if(len(peopleList) > 0):
             for i,k,m in zip(peopleList, ratioList,matchPointList):
                 DataPeopleDict ={}
                 DataPeopleDict["matchPoint"] = m

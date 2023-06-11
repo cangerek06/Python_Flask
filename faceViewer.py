@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 import time
 
-class FaceDetector():
+class faceViewer():
     def __init__(self, minDetectionCon=0.5):
 
         self.minDetectionCon = minDetectionCon
@@ -55,14 +55,14 @@ class FaceDetector():
         return img
     
 
-def main():
-        cap = cv2.VideoCapture("videos/video2.mp4")
+    def main(self,videoLink):
+        cap = cv2.VideoCapture(videoLink)
         pTime = 0
-        detector = FaceDetector()
+        
         while True:
             success, img = cap.read()
             if success:
-                img, bboxs = detector.findFaces(img)
+                img, bboxs = self.findFaces(img)
                 print(bboxs)
 
                 cTime = time.time()
@@ -82,4 +82,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    pass

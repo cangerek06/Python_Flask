@@ -192,8 +192,19 @@ def DeleteFrameWithIdentifier(host,dbname,user,password,port,id,frame):
         cursor.close()
         conn.close()
         
-    
-
+def GiveMatchPoint(host,dbname,user,password,port,RecievedData,videoId):
+    conn =psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
+    cursor =conn.cursor()
+    matchPointList = []
+    for i in RecievedData:
+        DataQuery = f"SELECT * FROM analyzeperframe WHERE frame ={i} AND id={videoId}"
+        cursor.execute(DataQuery)
+        data = cursor.fetchall()
+        matchPointList.append(str(data[4]))
+        conn.commit()
+    cursor.close()
+    conn.close()
+    return matchPointList
 
 def GiveFaceRatio(host,dbname,user,password,port,RecievedData,videoId):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)

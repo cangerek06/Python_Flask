@@ -9,13 +9,15 @@ import ast
 import psycopg2
 import listFunctions
 import db_operations
-import faceFunctions as faceFunctions
+import faceViewer
+import FaceFunctionsOOP as ffo
 
 from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
 
 app = Flask(__name__)
+faceDetector = ffo.faceDetector(KNOWN_FACES_DIR ="known_faces",UNKNOWN_FACES_DIR="data",TOLERANCE = 0.6,FRAME_THICKNESS = 3,FONT_THICKNESS = 2,videoId=1)
 
 @app.route('/compare',methods = ['GET','POST'])
 def CompareTime():
@@ -36,12 +38,14 @@ def CompareTime():
                 print("Data :"+str(data))
                 onlyPersonFrameList = db_operations.faceComparisonbyFrames(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),person=person,videoId=videoId)
                 ratio_list = db_operations.GiveFaceRatio(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData=onlyPersonFrameList,videoId=videoId)
+                matchPointList =db_operations.GiveMatchPoint(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),RecievedData=onlyPersonFrameList,videoId=videoId)
                 returnedData = {"data":[]}
                 for i in range(0,len(onlyPersonFrameList)):
                     dataDict ={}
                     dataDict["frames"]     = str(onlyPersonFrameList[i])
                     dataDict["person"]     = person
                     dataDict["videoId"]    = videoId
+                    dataDict["matchPoint"] = str(matchPointList[i])
                     dataDict["ratio"]      = ratio_list[i]
                     dataDict["identifier"] = str(videoId) + str(i)
                     returnedData["data"].append(dataDict)
@@ -123,7 +127,7 @@ def home():
        try:
         data = request.get_json()
         videoId= int(data["videoId"])
-        faceFunctions.allCalculations(videoId=videoId)
+        faceDetector.allCalculations(videoId=videoId)
         return "video başarıyla işlendi."
        except Exception as e:
             return "Bir hata oldu : "+str(e)
@@ -133,6 +137,11 @@ def home():
 def main():
     return 'Flask Opencv Face Recognation App'
 
+@app.route('/showVideo',methods=["GET"])
+def showVideo():
+    if request.method=="GET":
+        faceDetector.getVideoView()
+
 
 @app.route('/getFrameView',methods = ['GET'])
 def getFrameVİew():
@@ -141,7 +150,7 @@ def getFrameVİew():
             data = request.get_json()
             frameNo = data["frameNo"]
             videoId = data["videoId"]
-            faceFunctions.getFrameView(videoId=videoId,frameNo=frameNo)
+            faceDetector.getFrameView(videoId=videoId,frameNo=frameNo)
             return "Başarılı."
         except Exception as e:
             return "Hata oluştu :"+str(e)
