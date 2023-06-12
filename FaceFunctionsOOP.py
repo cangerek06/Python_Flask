@@ -27,15 +27,15 @@ class faceDetector():
         ret, frame =video.read()
 
         gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-        faces = face_classifier.detectMultiScale(frame, scaleFactor=1.01, minNeighbors=5, minSize=(40, 40))
+        face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades+"haarcascade_frontalface_default.xml")
+        faces = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
 
         for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 4)
         img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         while True:
-            img_rgb= cv2.resize(img_rgb,(300,450))
+            
             cv2.imshow('FrameShowWindow',img_rgb)
             key = cv2.waitKey(1)
             if(key ==ord('q')):
@@ -117,6 +117,23 @@ class faceDetector():
                 image =cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
                 for face_encoding, (x,y,w,h)  in zip(encodings, faces):
                     results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
+
+
                     match = None
                     face_area =w * h
                     print("İmage Width : "+str(imageWidth))

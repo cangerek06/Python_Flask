@@ -67,7 +67,18 @@ def showAll():
         except Exception as e:
             return "Error : "+str(e)
         
-            
+@app.route('/users',methods=['GET','POST'])
+def users():
+    if request.method =="GET":
+        data = request.get_json()
+        id = data["id"]
+        conn = psycopg2.connect(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
+        cursor = conn.cursor()
+        dataQuery = f"SELECT * FROM users_user WHERE id={id}"
+        cursor.execute(dataQuery)
+        dbData = cursor.fetchall()
+        return (dbData)
+
 
 @app.route('/show',methods=['GET'])
 def showFrame():

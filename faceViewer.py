@@ -56,7 +56,7 @@ class faceViewer():
     
 
     def main(self,videoLink):
-        cap = cv2.VideoCapture(videoLink)
+        cap = cv2.VideoCapture("videos/video1.mp4")
         pTime = 0
         
         while True:
