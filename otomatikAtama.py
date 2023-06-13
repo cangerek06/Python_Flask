@@ -19,9 +19,9 @@ def face_distance(face_encodings, face_to_compare):
 
 def deneme():
     videoURL = "videos/video1.mp4"
-    savedFaces = {}
+    Data = {}
     """
-    savedFaces = {1:{"encoding":"1.123 1.8734","SeenFrames":[1,2,5,12,15,23],"ratios":[0.78, 0.88, 0.87],"matchPoint":[]}}
+    Data = {1:{"encoding":"1.123 1.8734","SeenFrames":[1,2,5,12,15,23],"ratios":[0.78, 0.88, 0.87],"matchPoint":[]}}
     
     """
     
@@ -53,13 +53,13 @@ def deneme():
             savedFace_encodings =[]
 
             savedNumber = 0 #silinecek diğer yorum satırına kadar
-            print(len(savedFaces))
-            if len(savedFaces)>0:
+            print(len(Data))
+            if len(Data)>0:
                 #savedFaceIndex : {1:{.....}} => 1 =savedFaceIndex
                 #for loop gets that number in every turn 1,2,3,4
-                for savedFaceIndex in savedFaces:
-                    print("eklenmiş : "+str(savedFaces[savedFaceIndex]["encodings"]))
-                    savedFace_encodings.append(savedFaces[savedFaceIndex]["encodings"])
+                for savedFaceIndex in Data:
+                    print("eklenmiş : "+str(Data[savedFaceIndex]["encodings"]))
+                    savedFace_encodings.append(Data[savedFaceIndex]["encodings"])
                     savedNumber +=1
 
             #savedNumber = len(savedFace_encodings) */*/*
@@ -77,31 +77,31 @@ def deneme():
                 if(True in results):
                     #savedNumber = len(savedFace_encodings) */*/*
                     print("eşleşme bulundu.")
-                    matching = savedFaces[results.index(True)]["encodings"]
+                    matching = Data[results.index(True)]["encodings"]
                     print(f"Match Found : face{matching}")
                     face_distancePoint = face_distance(matching,face_encoding)
-                    savedFaces[results.index(True)]["frames"].append(count)
-                    savedFaces[results.index(True)]["matchPoints"].append(1 - face_distancePoint)
-                    savedFaces[results.index(True)]["ratioPoints"].append((((w * h) / img_area ) * 100))
+                    Data[results.index(True)]["frames"].append(count)
+                    Data[results.index(True)]["matchPoints"].append(1 - face_distancePoint)
+                    Data[results.index(True)]["ratioPoints"].append((((w * h) / img_area ) * 100))
 
                 else:
                     #savedNumber = len(savedFace_encodings) */*/*
                     print("Person's encoding does not exists in list.")
                     #savedFace_encodings.append(face_encoding)
 
-                    savedFaces[savedNumber]={}
-                    savedFaces[savedNumber]["encodings"]=face_encoding
+                    Data[savedNumber]={}
+                    Data[savedNumber]["encodings"]=face_encoding
 
-                    print(savedFaces[savedNumber]["encodings"])
+                    print(Data[savedNumber]["encodings"])
                     
-                    savedFaces[savedNumber]["frames"]=[]
-                    savedFaces[savedNumber]["frames"].append(count)
+                    Data[savedNumber]["frames"]=[]
+                    Data[savedNumber]["frames"].append(count)
                     
-                    savedFaces[savedNumber]["matchPoints"]=[]
-                    savedFaces[savedNumber]["matchPoints"].append(1.0)
+                    Data[savedNumber]["matchPoints"]=[]
+                    Data[savedNumber]["matchPoints"].append(1.0)
                     
-                    savedFaces[savedNumber]["ratioPoints"]=[]
-                    savedFaces[savedNumber]["ratioPoints"].append((((w * h) / img_area ) * 100))
+                    Data[savedNumber]["ratioPoints"]=[]
+                    Data[savedNumber]["ratioPoints"].append((((w * h) / img_area ) * 100))
 
                     print("Added frame : "+str(count))
                     
@@ -110,7 +110,7 @@ def deneme():
         count +=1
     
     print("**************ANALİZ SONUÇLARI**************")
-    print(savedFaces)
+    print(Data)
     print("********************************************")
 
 

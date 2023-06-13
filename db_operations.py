@@ -8,47 +8,26 @@ def DbInitiliazer(host,dbname,user,password,port):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
 
-    QueryString_VideoTable = """CREATE TABLE IF NOT EXISTS videotable(
-        id INTEGER,
-        videolink VARCHAR(255)
 
+    QueryString_AnalyzePerFrame = """CREATE TABLE IF NOT EXISTS analysis_of_videos(
+    faceid INTEGER UNIQUE,
+    encoding VARCHAR(255),
+    seen_frames VARCHAR(255),
+    ratio_points VARCHAR(255),
+    match_points VARCHAR(255),
+    person_name VARCHAR(255)
     );"""
+
     
-    QueryString_AnalyzeForFaceNumber = """CREATE TABLE IF NOT EXISTS analyzeforfacenumber(
-        id INTEGER,
-        frame INTEGER,
-        facenumber INTEGER,
-        identifier VARCHAR(255) UNIQUE    
-    );"""
-
-    QueryString_AnalyzePerFrame = """CREATE TABLE IF NOT EXISTS analyzeperframe(
-    id INTEGER,
-    frame INTEGER,
-    people VARCHAR(255),
-    ratio VARCHAR(255),
-    matchpoint VARCHAR(255),
-    identifier VARCHAR(255) UNIQUE
-    );"""
-
-    QueryString_AnalyzeForPerson= """CREATE TABLE IF NOT EXISTS analyzeforperson(
-    id INTEGER,
-    person VARCHAR(255),
-    totaltime VARCHAR(255)
-    );"""
-    
-    #executing db tables
-    cursor.execute(QueryString_VideoTable)
-    conn.commit()
+    #executing db table
     cursor.execute(QueryString_AnalyzePerFrame)
-    conn.commit()
-    cursor.execute(QueryString_AnalyzeForPerson)
-    conn.commit()
-    cursor.execute(QueryString_AnalyzeForFaceNumber)
     conn.commit()
     
     cursor.close()
     conn.close()
-    
+
+
+
 
 
 def SelectVideoTableDatasWithId(host,dbname,user,password,port,videoId):
@@ -71,24 +50,13 @@ def SelectVideoTableDatasWithId(host,dbname,user,password,port,videoId):
 
     return VİDEO_URL
 
-def SelectAllFaceTableData(host,dbname,user,password,port,videoId):
-    conn = psycopg2.connect(host=host,dbname=dbname,user=user,password=password,port=port)
-    cursor = conn.cursor()
-    
-    DataQuery =f"select * from analyzeforfacenumber WHERE id={int(videoId)} ORDER BY frame ASC ;"
-    cursor.execute(DataQuery)
 
-    data = cursor.fetchall()
-    print("$$$$$$$$$$$$$$$$$$$")
-    print("FaceTable Data : "+str(data))
-    print("$$$$$$$$$$$$$$$$$$$")
-    return data
 
 def SelectAllFrameDatas(host,dbname,user,password,port,videoId):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
     
-    DataQuery =f"SELECT * FROM analyzeperframe WHERE id={videoId} ORDER BY frame ASC"
+    DataQuery =f"SELECT * FROM analyzeperframe WHERE faceid={videoId} ORDER BY frame ASC"
     cursor.execute(DataQuery)
     data = cursor.fetchall()
     print(data)
@@ -137,20 +105,6 @@ def DeleteDataFromFaceNumberTable(host,dbname,user,password,port,videoId,frame):
 
 
 
-
-
-def InsertDataToVideoTable(host,dbname,user,password,port,RecievedData):
-    conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
-    cursor = conn.cursor()
-
-    InsertQuery = f"""INSERT INTO videotable (id, videolink) VALUES ({RecievedData[0]}, {RecievedData[1]}) ;"""
-    cursor.execute(InsertQuery)
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-
 def InsertDataToAnalyzePerFrame(host,dbname,user,password,port,RecievedData1,RecievedData2,RecievedData3,videoId,frameNumber):
     conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
     cursor = conn.cursor()
@@ -170,16 +124,6 @@ def InsertDataToAnalyzePerFrame(host,dbname,user,password,port,RecievedData1,Rec
     cursor.close()
     conn.close()
 
-def InsertDataToAnalyzeForPerson(host,dbname,user,password,port,RecievedData,person,videoId):
-    conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
-    cursor = conn.cursor()
-    
-    cursor.execute("INSERT INTO analyzeforperson(id,person,totaltime)VALUES(%s,%s,%s)",(videoId, person, len(RecievedData)))
-    print("kayit edildi")
-
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 def DeleteFrameWithIdentifier(host,dbname,user,password,port,id,frame):
         conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
@@ -261,8 +205,45 @@ def faceComparisonbyFrames(host,dbname,user,password,port,person,videoId):
     print("Total Time That Stays Alone At Video :"+str(len(onlyPersonFrameList)))
     return onlyPersonFrameList
 
+    
+def InsertToAnalyzeTable(host,dbname,user,password,port,faceId,encoding,seen_frames,match_points,ratio_points):
+    conn = psycopg2.connect(host = host,dbname = dbname,user=user,password=password,port=port)
+    cursor = conn.cursor()
+
+    QueryString = "INSERT INTO analysis_of_videos(faceid, encoding, seen_frames, ratio_points, match_points)VALUES(%s, %s, %s, %s, %s)ON CONFLICT (faceid) DO NOTHING"
+    cursor.execute(QueryString,(faceId,encoding,seen_frames,match_points,ratio_points))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 if __name__=='__main__':
-    SelectAllFrameDatas("localhost","cangerek","cangerek","3095",5432,1)
 
-    
+    DbInitiliazer("localhost","cangerek","cangerek","3095",port=5432)
+    Data = {1:{
+        "encoding":"encoding_verisi",
+        "seen_frames":[1, 2, 3, 4],
+        "ratio_points":[1.22, 1.23, 1.22, 2.11],
+        "match_points":[11.22, 23.11, 11.22, 23.11]
+
+        }}
+    faceId=2
+    encoding = Data[1]["encoding"]
+    seen_frames = Data[1]["seen_frames"]
+    ratio_points = Data[1]["ratio_points"]
+    match_points = Data[1]["match_points"]
+
+    print(Data[1]['encoding'])
+
+    InsertToAnalyzeTable("localhost","cangerek","cangerek","3095",5432,faceId,encoding,seen_frames,match_points,ratio_points)
+
+
+    QueryString_AnalyzePerFrame = """CREATE TABLE IF NOT EXISTS analysis_of_videos(
+    faceid INTEGER UNIQUE,
+    encoding VARCHAR(5500),
+    seen_frames VARCHAR(255),
+    ratio_points VARCHAR(255),
+    match_points VARCHAR(255),
+    person_name VARCHAR(255)
+    );"""
+
