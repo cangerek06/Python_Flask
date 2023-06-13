@@ -118,22 +118,6 @@ class faceDetector():
                 for face_encoding, (x,y,w,h)  in zip(encodings, faces):
                     results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
 
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-                    results = face_recognition.compare_faces(known_faces,face_encoding,self.TOLERANCE)
-
-
                     match = None
                     face_area =w * h
                     print("İmage Width : "+str(imageWidth))
