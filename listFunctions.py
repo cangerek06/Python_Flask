@@ -41,7 +41,7 @@ def showAll(videoId):
 
 
 def getInfo(videoId):
-        dbData =db_operations.SelectAllFaceTableData(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),videoId)
+        dbData =db_operations.Sele(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),videoId)
         #returnData is a Dictionary
         returnData ={"data":[]}
         if(len(dbData)!=0):

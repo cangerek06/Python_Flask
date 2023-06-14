@@ -9,6 +9,7 @@ import ast
 import psycopg2
 import listFunctions
 import db_operations
+import otomatikAtama
 import faceViewer
 import FaceFunctionsOOP as ffo
 
@@ -126,19 +127,22 @@ def Goruntule():
     if request.method=="GET":
         try:
             jsonData = request.get_json()
-            videoId = jsonData['videoId']
-            return listFunctions.getInfo(videoId=videoId)
+            video_token = jsonData['video_token']
+            returnedData = db_operations.SelectAllAnalysis(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),video_token=video_token)
+            return returnedData
         except Exception as e:
             return "Hata : "+str(e)
         
 
+
+#düzenlendi.
 @app.route('/commit',methods=['POST'])
 def home():
     if(request.method=="POST"):
        try:
         data = request.get_json()
-        videoId= int(data["videoId"])
-        faceDetector.allCalculations(videoId=videoId)
+        video_token= str(data["video_token"])
+        otomatikAtama.face_detect(videoToken=video_token)
         return "video başarıyla işlendi."
        except Exception as e:
             return "Bir hata oldu : "+str(e)

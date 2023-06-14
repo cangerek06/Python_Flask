@@ -4,6 +4,8 @@ import os
 import numpy as np
 import matplotlib
 import psycopg2
+import db_operations
+import pickle
 from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
@@ -17,12 +19,14 @@ def face_distance(face_encodings, face_to_compare):
         return face_dist_value 
 
 
-def deneme():
-    videoURL = "videos/video1.mp4"
-    Data = {}
+def face_detect(videoToken):
+    #alt iki satır rote fonksiyonu içerisinde yapılacak burada değil!
+    videoURL = db_operations.getVideoSource(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),videoToken="JlboqHKra")
+    print("videoURL : "+(videoURL))
+    videoURL="videos/video2.mp4"
+    Datas = {}
     """
-    Data = {1:{"encoding":"1.123 1.8734","SeenFrames":[1,2,5,12,15,23],"ratios":[0.78, 0.88, 0.87],"matchPoint":[]}}
-    
+    Datas = {1:{"encoding":"1.123 1.8734","SeenFrames":[1,2,5,12,15,23],"ratios":[0.78, 0.88, 0.87],"matchPoint":[]}}
     """
     
     videoCaptured =cv2.VideoCapture(videoURL)
@@ -44,7 +48,7 @@ def deneme():
             img_area = imageWidth * imageHeight
 
             gray_image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-            face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+            face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades  + "haarcascade_frontalface_default.xml")
             faces = face_classifier.detectMultiScale(gray_image,scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
 
             locations = face_recognition.face_locations(image,model="hog")
@@ -53,13 +57,13 @@ def deneme():
             savedFace_encodings =[]
 
             savedNumber = 0 #silinecek diğer yorum satırına kadar
-            print(len(Data))
-            if len(Data)>0:
+            print(len(Datas))
+            if len(Datas)>0:
                 #savedFaceIndex : {1:{.....}} => 1 =savedFaceIndex
                 #for loop gets that number in every turn 1,2,3,4
-                for savedFaceIndex in Data:
-                    print("eklenmiş : "+str(Data[savedFaceIndex]["encodings"]))
-                    savedFace_encodings.append(Data[savedFaceIndex]["encodings"])
+                for savedFaceIndex in Datas:
+                    print("eklenmiş : "+str(Datas[savedFaceIndex]["encodings"]))
+                    savedFace_encodings.append(Datas[savedFaceIndex]["encodings"])
                     savedNumber +=1
 
             #savedNumber = len(savedFace_encodings) */*/*
@@ -77,31 +81,37 @@ def deneme():
                 if(True in results):
                     #savedNumber = len(savedFace_encodings) */*/*
                     print("eşleşme bulundu.")
-                    matching = Data[results.index(True)]["encodings"]
+                    matching = Datas[results.index(True)]["encodings"]
                     print(f"Match Found : face{matching}")
                     face_distancePoint = face_distance(matching,face_encoding)
-                    Data[results.index(True)]["frames"].append(count)
-                    Data[results.index(True)]["matchPoints"].append(1 - face_distancePoint)
-                    Data[results.index(True)]["ratioPoints"].append((((w * h) / img_area ) * 100))
+                    Datas[results.index(True)]["seen_frames"].append(count)
+                    Datas[results.index(True)]["match_points"].append(1 - face_distancePoint)
+                    Datas[results.index(True)]["ratio_points"].append((((w * h) / img_area ) * 100))
 
                 else:
                     #savedNumber = len(savedFace_encodings) */*/*
                     print("Person's encoding does not exists in list.")
                     #savedFace_encodings.append(face_encoding)
 
-                    Data[savedNumber]={}
-                    Data[savedNumber]["encodings"]=face_encoding
+                    Datas[savedNumber]={}
+                    Datas[savedNumber]["encodings"]=face_encoding
 
-                    print(Data[savedNumber]["encodings"])
+                    print(Datas[savedNumber]["encodings"])
                     
-                    Data[savedNumber]["frames"]=[]
-                    Data[savedNumber]["frames"].append(count)
+                    Datas[savedNumber]["seen_frames"]=[]
+                    Datas[savedNumber]["seen_frames"].append(count)
                     
-                    Data[savedNumber]["matchPoints"]=[]
-                    Data[savedNumber]["matchPoints"].append(1.0)
+                    Datas[savedNumber]["match_points"]=[]
+                    Datas[savedNumber]["match_points"].append(1.0)
                     
-                    Data[savedNumber]["ratioPoints"]=[]
-                    Data[savedNumber]["ratioPoints"].append((((w * h) / img_area ) * 100))
+                    Datas[savedNumber]["ratio_points"]=[]
+                    Datas[savedNumber]["ratio_points"].append((((w * h) / img_area ) * 100))
+
+                    Datas[savedNumber]["video_token"] = []
+                    Datas[savedNumber]["video_token"].append(videoToken)
+
+                    Datas[savedNumber]["identifier"] = []
+                    Datas[savedNumber]["identifier"].append(str(savedNumber)+videoToken)
 
                     print("Added frame : "+str(count))
                     
@@ -109,10 +119,19 @@ def deneme():
 
         count +=1
     
-    print("**************ANALİZ SONUÇLARI**************")
-    print(Data)
-    print("********************************************")
+    db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
+    for data in Datas:
+        #print(Datas[data]["encodings"])
+        pickle_string =pickle.dumps(Datas[data]["encodings"])
+        print("heyyo")
+        print(str(Datas[data]["video_token"])[2:-2])
+        print("heyyo")
+        db_operations.InsertToAnalyzeTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),faceId=data,encoding=str(pickle_string),seen_frames=Datas[data]["seen_frames"],match_points=Datas[data]["match_points"],ratio_points=Datas[data]["ratio_points"],videoToken=str(Datas[data]["video_token"])[2:-2],identifier=Datas[data]["identifier"])
+        #to solving pcikle.dumps use the bottom codes
+        """print("************")
+        print(pickle.loads(pickle_string))
+        print("************")"""
 
 
 if __name__=="__main__":
-    deneme()
+    face_detect("JlboqHKra")
