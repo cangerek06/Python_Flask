@@ -3,6 +3,7 @@ import json
 import numpy as np
 import os
 from dotenv import load_dotenv, dotenv_values
+import pickle
 import ast
 
 load_dotenv()
@@ -14,12 +15,12 @@ def DbInitiliazer(host,dbname,user,password,port):
 
     QueryString_AnalyzePerFrame = """CREATE TABLE IF NOT EXISTS analysis_of_videos(
     faceid INTEGER,
-    video_token VARCHAR(50),
+    video_token VARCHAR(100),
     encoding VARCHAR(5500),
-    seen_frames VARCHAR(2550),
-    ratio_points VARCHAR(2550),
-    match_points VARCHAR(2550),
-    person_name VARCHAR(255),
+    seen_frames VARCHAR(5550),
+    ratio_points VARCHAR(5550),
+    match_points VARCHAR(5550),
+    person_name VARCHAR(50),
     identifier VARCHAR(255)UNIQUE
     );"""
 
@@ -298,53 +299,50 @@ def SelectAllAnalysis(host,dbname,user,password,port, video_token):
 
         dataDict["List"]=DataDictList
         returnedData["Datas"].append(dataDict)
-    
-    return returnedData
-
-
-
 
     cursor.close()
     conn.close()
-    return data
+    return returnedData
+
+
+def findPerson(host,dbname,user,password,port, identifier):
+    conn = psycopg2.connect(host = host,dbname=dbname,user =user,password=password,port=port)
+    cursor = conn.cursor()
+    
+    Query_string_for_person = f"SELECT * FROM analysis_of_videos WHERE identifier='{(identifier)}'"
+    cursor.execute(Query_string_for_person)
+    
+    personData = cursor.fetchall()
+    print("can")
+    print(personData[0][2])
+    print(type(personData[0][2]))
+    personEncoding =personData[0][2]
+
+    Query_string_for_allData=f"SELECT * FROM analysis_of_videos"
+    cursor.execute(Query_string_for_allData)
+    
+    allEncodingData = cursor.fetchall()
+    
+    """allOtherEncodings=[]
+    for encode in allEncodingData:
+        print(encode[2])
+        allOtherEncodings.append(encode[2])
+        print("*********")
+        print(pickle.loads(encode[2]))
+        print("*********")"""
+
+           
+
+
+
+
+     
+
 
 if __name__=='__main__':
 
-    """DbInitiliazer("localhost","cangerek","cangerek","3095",port=5432)
-    Data = {1:{
-        "encoding":"encoding_verisi",
-        "seen_frames":[1, 2, 3, 4],
-        "ratio_points":[1.22, 1.23, 1.22, 2.11],
-        "match_points":[11.22, 23.11, 11.22, 23.11],
-        "video_token":["K123CKOPS"],
-        "identifier":["1K123CKOPS"]
 
-        }}
-    faceId=2
-    encoding = Data[1]["encoding"]
-    seen_frames = Data[1]["seen_frames"]
-    ratio_points = Data[1]["ratio_points"]
-    match_points = Data[1]["match_points"]
-    videoToken =Data[1]["video_token"]
-    identifier =Data[1]["identifier"]
-
-    print(Data[1]['encoding'])
-
-    InsertToAnalyzeTable("localhost","cangerek","cangerek","3095",5432,faceId,encoding,seen_frames,match_points,ratio_points,videoToken,identifier)
-
-
-    QueryString_AnalyzePerFrame = CREATE TABLE IF NOT EXISTS analysis_of_videos(
-    faceid INTEGER,
-    videoToken VARCHAR(255)
-    encoding VARCHAR(5500),
-    seen_frames VARCHAR(255),
-    ratio_points VARCHAR(255),
-    match_points VARCHAR(255),
-    person_name VARCHAR(255),
-    identifier VARCHAR(255)UNIQUE
-    );
-
-    """
-
-    SelectAllAnalysis(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),video_token="JlboqHKra")
+    #SelectAllAnalysis(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),video_token="JlboqHKra")
     #InsertToAnalyzeTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),faceId=1212,videoToken="asd",encoding="1231",seen_frames="123123",ratio_points="123123",identifier="1231",match_points="1231")
+    findPerson(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),identifier="0kAl2bo9sC")
+   
