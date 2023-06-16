@@ -214,11 +214,11 @@ def faceComparisonbyFrames(host,dbname,user,password,port,person,videoId):
     print("Total Time That Stays Alone At Video :"+str(len(onlyPersonFrameList)))
     return onlyPersonFrameList
 
-def getVideoSource(host,dbname,user,password,port,videoToken):
+def getVideoSource(host,dbname,user,password,port,video_token):
     conn =psycopg2.connect(host=host,dbname=dbname,user=user,password=password,port=port)
     cursour = conn.cursor()
 
-    QueryStirng = f"SELECT * FROM files_media WHERE friendly_token='{(videoToken)}'"
+    QueryStirng = f"SELECT * FROM files_media WHERE friendly_token='{(video_token)}'"
 
     cursour.execute(QueryStirng)
     data =cursour.fetchall()
@@ -312,26 +312,31 @@ def findPerson(host,dbname,user,password,port, identifier):
     Query_string_for_person = f"SELECT * FROM analysis_of_videos WHERE identifier='{(identifier)}'"
     cursor.execute(Query_string_for_person)
     
-    personData = cursor.fetchall()
-    print("can")
-    print(personData[0][2])
-    print(type(personData[0][2]))
-    personEncoding =personData[0][2]
+    dbData  = cursor.fetchall()
+    personData = str(dbData[0][2])
+    print(dbData[0][2])
+    print(str(type(dbData[0][2])))
+    
+    #the encoding of who we want to search.
+    personNpEncodingData = np.fromstring(personData,dtype= float)
+
+    print(personNpEncodingData)
+    print(str(type(personNpEncodingData)))
 
     Query_string_for_allData=f"SELECT * FROM analysis_of_videos"
     cursor.execute(Query_string_for_allData)
     
     allEncodingData = cursor.fetchall()
+    npArray =[]
     
-    """allOtherEncodings=[]
-    for encode in allEncodingData:
-        print(encode[2])
-        allOtherEncodings.append(encode[2])
-        print("*********")
-        print(pickle.loads(encode[2]))
-        print("*********")"""
+    for otherPersonEncodingData in allEncodingData:
+        print("************************")
+        data=otherPersonEncodingData[2]
+        
 
-           
+
+def ListAllAnalyzes():
+    pass         
 
 
 

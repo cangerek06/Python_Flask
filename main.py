@@ -16,22 +16,30 @@ load_dotenv()
 
 app = Flask(__name__)
 
-                   
 
-@app.route('/delete',methods=['POST'])
-def deleteFrame():
-    if(request.method=="POST"):
-        data= request.get_json()
+@app.route('/listAnalyzes',methods=['GET','POST'])
+def listAnalyzes():
+    if request.method=='GET':
         try:
-            id = data["videoId"]
-            frame = data["frame"]
-            db_operations.DeleteFrameWithIdentifier(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),id,frame)
-            db_operations.DeleteDataFromFaceNumberTable(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),id,frame)
-            return "Frame silindi"
-        except:
-            return "videoId veya frame eksik girilmiş"
-        
+            db_operations.ListAllAnalyzes()
 
+        except Exception as e:
+            return e
+
+
+
+#düzenlendi
+@app.route('/GetVideoUrl',methods=['GET','POST'])
+def getVideoUrl():
+    if request.method=='GET':
+        try:
+            jsonData = request.get_json()
+            video_token = jsonData["video_token"]
+            video_url=db_operations.getVideoSource(os.getenv("HOST"),os.getenv("DBNAME"),os.getenv("MYUSER"),os.getenv("PASSWORD"),os.getenv("PORT"),video_token=video_token)
+            return f"Video Source Link : {video_url}"
+            
+        except Exception as e:
+            return str(e)
 #düzenlendi
 @app.route('/info', methods =['GET','POST'])
 def Goruntule():

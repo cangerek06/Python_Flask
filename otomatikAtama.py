@@ -3,6 +3,7 @@ import face_recognition
 import os
 import numpy as np
 import matplotlib
+import json
 import psycopg2
 import db_operations
 import pickle
@@ -21,7 +22,7 @@ def face_distance(face_encodings, face_to_compare):
 
 def face_detect(videoToken):
     #alt iki satır rote fonksiyonu içerisinde yapılacak burada değil!
-    videoURL = "/home/mediacms.io/mediacms/media_files/"+db_operations.getVideoSource(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),videoToken=videoToken)
+    videoURL = "/home/mediacms.io/mediacms/media_files/"+db_operations.getVideoSource(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),video_token=videoToken)
     Datas = {}
     """
     Datas = {1:{"encoding":"1.123 1.8734","SeenFrames":[1,2,5,12,15,23],"ratios":[0.78, 0.88, 0.87],"matchPoint":[]}}
@@ -35,7 +36,7 @@ def face_detect(videoToken):
     #savedFace_encodings =[] */*/*
     while True:
         print("processing Frame :"+str(count))
-        videoCaptured.set(cv2.CAP_PROP_POS_MSEC,(count * 1000  / int(os.getenv("FRAMESPERSECOND"))))
+        videoCaptured.set(cv2.CAP_PROP_POS_MSEC,(count * 5000  / int(os.getenv("FRAMESPERSECOND"))))
         
         success, image = videoCaptured.read()
         try:
@@ -117,14 +118,21 @@ def face_detect(videoToken):
     
     db_operations.DbInitiliazer(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"))
     for data in Datas:
-        #print(Datas[data]["encodings"])
-        print("casda : "+str(type(Datas[data]["encodings"])))
-        pickle_string =pickle.dumps(Datas[data]["encodings"])
-        print(type(pickle_string))
-        print(pickle_string)
-        db_operations.InsertToAnalyzeTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),faceId=data,encoding=str(pickle_string),seen_frames=Datas[data]["seen_frames"],match_points=Datas[data]["match_points"],ratio_points=Datas[data]["ratio_points"],videoToken=str(Datas[data]["video_token"])[2:-2],identifier=str(Datas[data]["identifier"])[2:-2])
-        #to solving pcikle.dumps use the bottom codes
-        print("************")
-        print(pickle.loads(pickle_string))
-        print("************")
+        
+        value =Datas[data]["encodings"]
+        stringValue = np.ndarray.dumps(value)
+        print(stringValue)
+
+        #to get origin string. pickle.loads
+        encrypted = (pickle.loads(stringValue))
+        print("********>>>")
+        print(encrypted)
+        print(type(encrypted))
+
+        
+        
+
+    
+        #db_operations.InsertToAnalyzeTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),faceId=data,encoding=stringValue,seen_frames=Datas[data]["seen_frames"],match_points=Datas[data]["match_points"],ratio_points=Datas[data]["ratio_points"],videoToken=str(Datas[data]["video_token"])[2:-2],identifier=str(Datas[data]["identifier"])[2:-2])
+        
 
