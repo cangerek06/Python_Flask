@@ -122,6 +122,7 @@ def face_detect(videoToken):
         value =Datas[data]["encodings"]
         stringValue = np.ndarray.dumps(value)
         print(stringValue)
+        print("type of binary coded value:"+str(type(stringValue)))
 
         #to get origin string. pickle.loads
         encrypted = (pickle.loads(stringValue))
