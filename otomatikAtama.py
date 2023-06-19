@@ -136,4 +136,3 @@ def face_detect(videoToken):
     
         #db_operations.InsertToAnalyzeTable(host=os.getenv("HOST"),dbname=os.getenv("DBNAME"),user=os.getenv("MYUSER"),password=os.getenv("PASSWORD"),port=os.getenv("PORT"),faceId=data,encoding=stringValue,seen_frames=Datas[data]["seen_frames"],match_points=Datas[data]["match_points"],ratio_points=Datas[data]["ratio_points"],videoToken=str(Datas[data]["video_token"])[2:-2],identifier=str(Datas[data]["identifier"])[2:-2])
         
-
